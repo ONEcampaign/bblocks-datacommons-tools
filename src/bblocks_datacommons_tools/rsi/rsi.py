@@ -479,13 +479,24 @@ class RSI:
         # export the data
         self.export_data(dir_path)
 
-    # TODO: __repr__ method to return a string representation of the object
-    # TODO: summary method to return a summary of the object
+    def __repr__(self) -> str:
+        input_files_count = len(self._config.inputFiles)
+        sources_count = len(self._config.sources)
+        variables_count = len(self._config.variables or {})
+        dataframes_count = len(self._data)
+
+        include_input_subdirs = self._config.includeInputSubdirs
+        group_statvars = self._config.groupStatVarsByProperty
+
+        return (
+            f"<RSI config: "
+            f"\n{input_files_count} inputFiles, with {dataframes_count} containing data"
+            f"\n{sources_count} sources"
+            f"\n{variables_count} variables"
+            f"\nflags: includeInputSubdirs={include_input_subdirs}, "
+            f"groupStatVarsByProperty={group_statvars}>"
+        )
+
     # TODO: add_config method to add a config to the object either from json file, dictionary or another Config object and merge with existing config
-
-
-
-
-
 
 
