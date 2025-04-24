@@ -73,7 +73,6 @@ class InputFile(BaseModel):
 
         using_implicit = self.entityType is not None or self.observationProperties is not None
         using_explicit = self.columnMappings is not None or self.data_format == "variablePerRow"
-        print(f"using_implicit: {using_implicit}, using_explicit: {using_explicit}")
 
         if using_implicit and using_explicit:
             raise ValueError(
