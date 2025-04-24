@@ -2,6 +2,7 @@
 
 from typing import Optional, Dict, List, Literal
 from pydantic import BaseModel, Field, HttpUrl, model_validator
+import pandas as pd
 
 
 class ObservationProperties(BaseModel):
@@ -159,4 +160,156 @@ class Config(BaseModel):
                 )
 
         return self
+
+    def validate_config(self) -> None:
+        """Validate the config"""
+        Config.model_validate(self.model_dump())
+
+    @classmethod
+    def from_json(cls, file_path: str) -> "Config":
+        """Read the config from a JSON file
+
+        Args:
+            file_path: Path to the JSON file.
+
+        Returns:
+            Config: The config object.
+        """
+
+        with open(file_path, "r") as f:
+            data = f.read()
+        return cls.model_validate_json(data)
+
+
+
+class RSI:
+    """ """
+
+    def __init__(self, config_file: Optional[str] = None):
+        # TODO replace with a path to config file
+        # TODO: allow passing multiple paths and merging them together into one config object
+
+        self.config = Config.from_json(config_file) if config_file else Config(
+            inputFiles={},
+            sources={},
+        )
+        self.data = {}
+
+    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl, source_name: str, source_url: Optional[HttpUrl], override: bool = False) -> None:
+        """Add a provenance to the config
+
+        Add a provenance (optionally with a new source) to the sources section of the config file. If the source does not exist, it will be added
+        but a source URL must be provided. If the source exists, the provenance will be added to the existing source. If the provenance already exists, it will be overwritten if override is set to True.
+
+        Args:
+            provenance_name: Name of the provenance
+            provenance_url: URL of the provenance
+            source_name: Name of the source
+            source_url: URL of the source (optional)
+            override: If True, overwrite the existing provenance if it exists. Defaults to False.
+
+        Raises:
+            ValueError: If the source does not exist and no source URL is provided, or if the provenance already exists and override is not set to True.
+        """
+
+        # if the source does not exist, add it
+        if source_name not in self.config.sources:
+            # if the source URL is not provided, raise an error
+            if source_url is None:
+                raise ValueError(f"Source '{source_name}' not found. Please provide a source URL so the source can be added.")
+            self.config.sources[source_name] = Source(url=source_url, provenances={provenance_name: provenance_url})
+
+        # if the source exists, add the provenance
+        else:
+            # check if the provenance already exists
+            if provenance_name in self.config.sources[source_name].provenances:
+                if not override:
+                    raise ValueError(f"Provenance '{provenance_name}' already exists for source '{source_name}'. Use override=True to overwrite it.")
+                else:
+                    self.config.sources[source_name].provenances[provenance_name] = provenance_url
+            # if the provenance does not exist,add it
+            else:
+                self.config.sources[source_name].provenances[provenance_name] = provenance_url
+
+    def add_variable(self, statVar: str,
+                     name: Optional[str] = None,
+                     description: Optional[str] = None,
+                     searchDescriptions: Optional[List[str]] = None,
+                     group: Optional[str] = None,
+                     properties: Optional[Dict[str, str]] = None,
+                     override: bool = False,
+                     ) -> None:
+        """Add a variable to the config"""
+
+        # check if the config has a variables section
+        if self.config.variables is None:
+            self.config.variables = {}
+
+        # check if the variable already exists
+        if statVar in self.config.variables:
+            if not override:
+                raise ValueError(f"Variable '{statVar}' already exists. Use override=True to overwrite it.")
+
+        self.config.variables[statVar] = Variable(name=name, description=description, searchDescriptions=searchDescriptions, group=group, properties=properties)
+
+    def add_data(self,
+                 file_name: str,
+                 provenance: str,
+                 data: Optional[pd.DataFrame] = None,
+                 entityType: Optional[str] = None,
+                 ignoreColumns: Optional[List[str]] = None,
+                    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = None,
+                    columnMappings: Optional[ColumnMappings] = None,
+                    observationProperties: Optional[ObservationProperties] = None,
+                 override: bool = False
+                 ) -> None:
+        """Add and inputFile to the config and optionally register the data as pandas dataframe"""
+
+        # check if the file already exists
+        if file_name in self.config.inputFiles:
+            if not override:
+                raise ValueError(f"File '{file_name}' already exists. Use override=True to overwrite it.")
+
+        # add the file to the config
+        self.config.inputFiles[file_name] = InputFile(
+            entityType=entityType,
+            ignoreColumns=ignoreColumns,
+            provenance=provenance,
+            format=data_format,
+            columnMappings=columnMappings,
+            observationProperties=observationProperties,
+        )
+
+        # if data is provided, register it
+        if data is not None:
+            self.data[file_name] = data
+
+    def export_config(self, dir_path: str) -> None:
+        """Export the config to a JSON file"""
+
+        # validate the config
+        self.config.validate_config()
+
+        # export the config to a JSON file
+        with open(dir_path + "/config.json", "w") as f:
+            f.write(self.config.model_dump_json(indent=4, exclude_none=True))
+
+    def export_data(self, dir_path: str) -> None:
+        """ """
+
+        # check if there is any data
+        if not self.data:
+            raise ValueError("No data to export")
+
+        # export the data to CSV files
+        for file, data in self.data.items():
+            data.to_csv(dir_path + "/" + file, index=False)
+
+
+
+
+
+
+
+
 
