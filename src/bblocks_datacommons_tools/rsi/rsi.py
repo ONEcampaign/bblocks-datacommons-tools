@@ -3,6 +3,8 @@
 from typing import Optional, Dict, List, Literal
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 import pandas as pd
+from os import PathLike
+from pathlib import Path
 
 
 class ObservationProperties(BaseModel):
@@ -186,14 +188,20 @@ class RSI:
     """ """
 
     def __init__(self, config_file: Optional[str] = None):
-        # TODO replace with a path to config file
-        # TODO: allow passing multiple paths and merging them together into one config object
 
         self.config = Config.from_json(config_file) if config_file else Config(
             inputFiles={},
             sources={},
         )
         self.data = {}
+
+    def set_includeInputSubdirs(self, set_value: bool) -> None:
+        """Set the includeInputSubdirs attribute of the config"""
+        self.config.includeInputSubdirs = set_value
+
+    def set_groupStatVarsByProperty(self, set_value: bool) -> None:
+        """Set the groupStatVarsByProperty attribute of the config"""
+        self.config.groupStatVarsByProperty = set_value
 
     def add_provenance(self, provenance_name: str, provenance_url: HttpUrl, source_name: str, source_url: Optional[HttpUrl], override: bool = False) -> None:
         """Add a provenance to the config
@@ -284,18 +292,48 @@ class RSI:
         if data is not None:
             self.data[file_name] = data
 
-    def export_config(self, dir_path: str) -> None:
-        """Export the config to a JSON file"""
+    def config_to_json(self, dir_path: str | PathLike[str]) -> None:
+        """Export the config to a JSON file
+        Before exporting, the config is validated to ensure that all required fields are present and that the config is valid.
+
+        Args:
+            dir_path: Path to the directory where the config will be exported.
+
+        Raises:
+            ValueError: If the config is not valid
+        """
 
         # validate the config
         self.config.validate_config()
 
         # export the config to a JSON file
-        with open(dir_path + "/config.json", "w") as f:
+        output_path = Path(dir_path) / "config.json"
+        with output_path.open("w") as f:
             f.write(self.config.model_dump_json(indent=4, exclude_none=True))
 
-    def export_data(self, dir_path: str) -> None:
-        """ """
+    def config_to_dict(self) -> Dict:
+        """Export the config to a dictionary
+        Before exporting, the config is validated to ensure that all required fields are present and that the config is valid.
+
+        Returns:
+            Dict: The config as a dictionary
+
+        Raises:
+            ValueError: If the config is not valid
+        """
+
+        # validate the config
+        self.config.validate_config()
+
+        # export the config to a dictionary
+        return self.config.model_dump(exclude_none=True)
+
+    def export_data(self, dir_path: str | PathLike[str]) -> None:
+        """Export the data to CSV files
+
+        Args:
+            dir_path: Path to the directory where the data will be exported.
+        """
 
         # check if there is any data
         if not self.data:
@@ -303,9 +341,24 @@ class RSI:
 
         # export the data to CSV files
         for file, data in self.data.items():
-            data.to_csv(dir_path + "/" + file, index=False)
+            data.to_csv(Path(dir_path) / file, index=False)
 
+    def export_config_and_data(self, dir_path: str | PathLike[str]) -> None:
+        """Export the config and data to a directory
 
+        Args:
+            dir_path: Path to the directory where the config and data will be exported.
+        """
+
+        # export the config
+        self.config_to_json(dir_path)
+
+        # export the data
+        self.export_data(dir_path)
+
+    # TODO: __repr__ method to return a string representation of the object
+    # TODO: summary method to return a summary of the object
+    # TODO: add_config method to add a config to the object either from json file, dictionary or another Config object and merge with existing config
 
 
 
