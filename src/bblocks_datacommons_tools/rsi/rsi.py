@@ -1,27 +1,72 @@
 """Module to work with Data Commons RSI"""
 
-from dataclasses import dataclass, field
-from pathlib import Path
-import json
+from typing import Optional, Dict, List, Literal
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
-@dataclass
-class InputFiles:
+class ObservationProperties(BaseModel):
+    """Representation of the ObservationProperties section of the InputFiles section of the config file
+    This is for implicit schema only
+
+    Attributes:
+        unit: Unit of the observation.
+        observationPeriod: Observation period of the data.
+        scalingFactor: Scaling factor for the data.
+        measurementMethod: Measurement method used for the data.
+    """
+
+    unit: Optional[str] = None
+    observationPeriod: Optional[str] = None
+    scalingFactor: Optional[str] = None
+    measurementMethod: Optional[str] = None
+
+
+class ColumnMappings(BaseModel):
+    """Representation of the ColumnMappings section of the InputFiles section of the config file
+    This is for explicit schema only
+
+    Attributes:
+        variable: Variable name.
+        entity: Entity name.
+        date: Date of the observation.
+        value: Value of the observation.
+        unit: Unit of the observation.
+        scalingFactor: Scaling factor for the data.
+        measurementMethod: Measurement method used for the data.
+        observationPeriod: Observation period of the data.
+    """
+    variable: Optional[str] = None
+    entity: Optional[str] = None
+    date: Optional[str] = None
+    value: Optional[str] = None
+    unit: Optional[str] = None
+    scalingFactor: Optional[str] = None
+    measurementMethod: Optional[str] = None
+    observationPeriod: Optional[str] = None
+
+
+class InputFile(BaseModel):
     """Representation of the InputFiles section of the config file
 
     Attributes:
         entityType: Type of the entity.
+        ignoreColumns: List of columns to ignore.
         provenance: Provenance of the data.
+        data_format: Format of the data (variable per column or variable per row). Accepted values are "variablePerColumn" or "variablePerRow". This is represented as "format" in the JSON.
         observationProperties: Properties of the observation.
     """
 
-    entityType: str
+    entityType: Optional[str] = Field(default_factory=str) # required for implicit schema
+    ignoreColumns: Optional[List[str]] = None
     provenance: str
-    observationProperties: dict
+    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(default=None, alias="format") # represent the "format" field. Get around the protected name issue
+    columnMappings: Optional[ColumnMappings] = None
+    observationProperties: Optional[ObservationProperties] = None
 
-@dataclass
-class Variables:
+
+class Variable(BaseModel):
     """Representation of the Variables section of the config file
+    This section is optional in the config file
 
     Attributes:
         name: Name of the variable.
@@ -31,81 +76,73 @@ class Variables:
         properties: Properties of the variable.
     """
 
-    name: str
-    description: str = field(default_factory=str)
-    searchDescriptions: list = field(default_factory=list)
-    group: str = "ONE/"
-    properties: dict = field(default_factory=dict)
+    name: Optional[str] = None
+    description: Optional[str] = None
+    searchDescriptions: Optional[List[str]] = None
+    group: Optional[str] = None
+    properties: Optional[Dict[str, str]] = None
 
 
-@dataclass
-class Sources:
-    """Representation of the Sources section of the config file"""
-    url: str
-    provenances: dict
+class Source(BaseModel):
+    """Representation of the Sources section of the config file
+
+    Attributes:
+        url: URL of the source.
+        provenances: Dictionary of provenances. Each provenance name maps to a URL.
+    """
+
+    url: HttpUrl
+    provenances: Dict[str, HttpUrl]  # Each provenance name maps to a URL
 
 
-@dataclass
-class Config:
-    """ """
+class Config(BaseModel):
+    """Representation of the config file
 
-    includeInputSubdirs: bool | None = None # Representation of the includeInputSubdirs section of the config file
-    inputFiles: dict[str, InputFiles] = field(default_factory=dict)
-    variables: dict[str, Variables] = field(default_factory=dict)
-    sources: dict[str, Sources] = field(default_factory=dict)
+    Attributes:
+        includeInputSubdirs: Include input subdirectories.
+        groupStatVarsByProperty: Group stat vars by property.
+        inputFiles: Dictionary of input files.
+        variables: Dictionary of variables.
+        sources: Dictionary of sources.
+    """
 
-    def to_dict(self) -> dict:
-        """Convert the config object to a dictionary.
-        """
+    includeInputSubdirs: Optional[bool] = None
+    groupStatVarsByProperty: Optional[bool] = None
+    inputFiles: Dict[str, InputFile]
+    variables: Optional[Dict[str, Variable]] = None # optional section
+    sources: Dict[str, Source]
 
-        config_dict = {
-            "inputFiles": {k: v.__dict__ for k, v in self.inputFiles.items()},
-            "variables": {k: v.__dict__ for k, v in self.variables.items()},
-            "sources": {k: v.__dict__ for k, v in self.sources.items()},
-        }
+    # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
+    model_config = {
+        "populate_by_name": True,
+        "extra": "forbid",
+    }
 
-        if self.includeInputSubdirs is not None:
-            config_dict["includeInputSubdirs"] = self.includeInputSubdirs
+    @model_validator(mode="after")
+    def validate_input_file_keys_are_csv(self) -> "Config":
+        """Validate that all input file keys are .csv files"""
 
-        return config_dict
+        for key in self.inputFiles:
+            if not key.lower().endswith(".csv"):
+                raise ValueError(f'Input file key "{key}" must be a .csv file name')
+        return self
 
-    @classmethod
-    def from_json(cls, path: Path) -> "Config":
-        """Create a Config object from a JSON file.
+    @model_validator(mode="after")
+    def validate_provenance_in_sources(self) -> "Config":
+        """Validate that all input file provenances are in the sources section"""
 
-        Args:
-            path: Path to the JSON file.
+        known_provenances = set()
+        for source in self.sources.values():
+            known_provenances.update(source.provenances.keys())
 
-        Returns:
-            Config object.
-        """
+        # Validate that each InputFile provenance is among them
+        for file_key, input_file in self.inputFiles.items():
+            if input_file.provenance not in known_provenances:
+                raise ValueError(
+                    f'Input file "{file_key}" references unknown provenance "{input_file.provenance}".'
+                )
 
-        with open(path, "r") as f:
-            data = json.load(f)
+        return self
 
-        config = Config()
-        config.includeInputSubdirs = data.get("includeInputSubdirs")
-
-        for key, value in data["inputFiles"].items():
-            config.inputFiles[key] = InputFiles(**value)
-
-        for key, value in data["variables"].items():
-            config.variables[key] = Variables(**value)
-
-        for key, value in data["sources"].items():
-            config.sources[key] = Sources(**value)
-
-        return config
-
-    def to_json(self, path: Path) -> None:
-        """Save the config object to a JSON file.
-
-        Args:
-            path: Path to save the JSON file.
-        """
-
-        config_dict = self.to_dict()
-
-        with open(path, "w") as f:
-            json.dump(config_dict, f, indent=4)
+    # TODO: Validation of implicit schema vs explicit schema
 
