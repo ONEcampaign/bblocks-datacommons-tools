@@ -260,19 +260,19 @@ class RSI:
 
     def __init__(self, config_file: Optional[str | PathLike[str]] = None):
 
-        self.config = Config.from_json(config_file) if config_file else Config(
+        self._config = Config.from_json(config_file) if config_file else Config(
             inputFiles={},
             sources={},
         )
-        self.data = {}
+        self._data = {}
 
     def set_includeInputSubdirs(self, set_value: bool) -> None:
         """Set the includeInputSubdirs attribute of the config"""
-        self.config.includeInputSubdirs = set_value
+        self._config.includeInputSubdirs = set_value
 
     def set_groupStatVarsByProperty(self, set_value: bool) -> None:
         """Set the groupStatVarsByProperty attribute of the config"""
-        self.config.groupStatVarsByProperty = set_value
+        self._config.groupStatVarsByProperty = set_value
 
     def add_provenance(self, provenance_name: str, provenance_url: HttpUrl | str, source_name: str, source_url: Optional[HttpUrl | str] = None, override: bool = False) -> None:
         """Add a provenance to the config
@@ -292,19 +292,19 @@ class RSI:
         """
 
         # if the source does not exist, add it
-        if source_name not in self.config.sources:
+        if source_name not in self._config.sources:
             # if the source URL is not provided, raise an error
             if source_url is None:
                 raise ValueError(f"Source '{source_name}' not found. Please provide a source URL so the source can be added.")
-            self.config.sources[source_name] = Source(url=source_url, provenances={provenance_name: provenance_url})
+            self._config.sources[source_name] = Source(url=source_url, provenances={provenance_name: provenance_url})
 
         # if the source exists, add the provenance
         else:
             # check if the provenance already exists
-            if provenance_name in self.config.sources[source_name].provenances:
+            if provenance_name in self._config.sources[source_name].provenances:
                 if not override:
                     raise ValueError(f"Provenance '{provenance_name}' already exists for source '{source_name}'. Use override=True to overwrite it.")
-            self.config.sources[source_name].provenances[provenance_name] = HttpUrl(provenance_url)
+            self._config.sources[source_name].provenances[provenance_name] = HttpUrl(provenance_url)
 
     def add_variable(self, statVar: str,
                      name: Optional[str] = None,
@@ -328,15 +328,15 @@ class RSI:
         """
 
         # check if the config has a variables section
-        if self.config.variables is None:
-            self.config.variables = {}
+        if self._config.variables is None:
+            self._config.variables = {}
 
         # check if the variable already exists
-        if statVar in self.config.variables:
+        if statVar in self._config.variables:
             if not override:
                 raise ValueError(f"Variable '{statVar}' already exists. Use override=True to overwrite it.")
 
-        self.config.variables[statVar] = Variable(name=name, description=description, searchDescriptions=searchDescriptions, group=group, properties=properties)
+        self._config.variables[statVar] = Variable(name=name, description=description, searchDescriptions=searchDescriptions, group=group, properties=properties)
 
     def add_input_file(self,
                  file_name: str,
@@ -367,12 +367,12 @@ class RSI:
         """
 
         # check if the file already exists
-        if file_name in self.config.inputFiles:
+        if file_name in self._config.inputFiles:
             if not override:
                 raise ValueError(f"File '{file_name}' already exists. Use override=True to overwrite it.")
 
         # add the file to the config
-        self.config.inputFiles[file_name] = InputFile(
+        self._config.inputFiles[file_name] = InputFile(
             entityType=entityType,
             ignoreColumns=ignoreColumns,
             provenance=provenance,
@@ -383,7 +383,7 @@ class RSI:
 
         # if data is provided, register it
         if data is not None:
-            self.data[file_name] = data
+            self._data[file_name] = data
 
     def add_data(self, data: pd.DataFrame, file_name: str, override: bool=False) -> None:
         """Add data to the config
@@ -394,16 +394,16 @@ class RSI:
         """
 
         # check if the file name has been registered in the config file
-        if file_name not in self.config.inputFiles:
+        if file_name not in self._config.inputFiles:
             raise ValueError(f"File '{file_name}' not found in the config file. Please register the file in the config file before adding data, using the add_input_file method.")
 
         # check if the file already exists and override is not set
-        if file_name in self.data:
+        if file_name in self._data:
             if not override:
                 raise ValueError(f"File '{file_name}' already exists. Use a different name.")
 
         # add the data to the config
-        self.data[file_name] = data
+        self._data[file_name] = data
 
     def export_config(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
@@ -418,12 +418,12 @@ class RSI:
         """
 
         # validate the config
-        self.config.validate_config()
+        self._config.validate_config()
 
         # export the config to a JSON file
         output_path = Path(dir_path) / "config.json"
         with output_path.open("w") as f:
-            f.write(self.config.model_dump_json(indent=4, exclude_none=True))
+            f.write(self._config.model_dump_json(indent=4, exclude_none=True))
 
     def config_to_dict(self) -> Dict:
         """Export the config to a dictionary
@@ -438,10 +438,10 @@ class RSI:
         """
 
         # validate the config
-        self.config.validate_config()
+        self._config.validate_config()
 
         # export the config to a dictionary
-        return self.config.model_dump(mode = "json", exclude_none=True)
+        return self._config.model_dump(mode ="json", exclude_none=True)
 
     def export_data(self, dir_path: str | PathLike[str]) -> None:
         """Export the data to CSV files
@@ -451,11 +451,11 @@ class RSI:
         """
 
         # check if there is any data
-        if not self.data:
+        if not self._data:
             raise ValueError("No data to export")
 
         # export the data to CSV files
-        for file, data in self.data.items():
+        for file, data in self._data.items():
             data.to_csv(Path(dir_path) / file, index=False)
 
     def export_config_and_data(self, dir_path: str | PathLike[str]) -> None:
