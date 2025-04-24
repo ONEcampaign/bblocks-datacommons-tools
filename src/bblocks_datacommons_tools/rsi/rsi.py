@@ -202,7 +202,7 @@ class RSI:
         """Set the groupStatVarsByProperty attribute of the config"""
         self.config.groupStatVarsByProperty = set_value
 
-    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl, source_name: str, source_url: Optional[HttpUrl], override: bool = False) -> None:
+    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl, source_name: str, source_url: Optional[HttpUrl] = None, override: bool = False) -> None:
         """Add a provenance to the config
 
         Add a provenance (optionally with a new source) to the sources section of the config file. If the source does not exist, it will be added
@@ -259,7 +259,7 @@ class RSI:
 
         self.config.variables[statVar] = Variable(name=name, description=description, searchDescriptions=searchDescriptions, group=group, properties=properties)
 
-    def add_data(self,
+    def add_input_file(self,
                  file_name: str,
                  provenance: str,
                  data: Optional[pd.DataFrame] = None,
@@ -270,7 +270,21 @@ class RSI:
                     observationProperties: Optional[ObservationProperties] = None,
                  override: bool = False
                  ) -> None:
-        """Add and inputFile to the config and optionally register the data as pandas dataframe"""
+        """Add an inputFile to the config and optionally register the data as pandas dataframe
+
+        This method registers an input file in the config. Optionally it also registers the data that accompanies the input file registered. The registration of the data is made optional in cases where a user wants to edite the config file without the accompanying data. The data can be registered later using the add data method.
+
+        Args:
+            file_name: Name of the file (should be a .csv file)
+            provenance: Provenance of the data. This should be the name of the provenance in the sources section of the config file. Use add_provenance to add a provenance to the config file.
+            data: Data to register (optional)
+            entityType: Type of the entity (optional)
+            ignoreColumns: List of columns to ignore (optional)
+            data_format: Format of the data (optional)
+            columnMappings: Column mappings (optional)
+            observationProperties: Observation properties (optional)
+            override: If True, overwrite the existing file if it exists. Defaults to False.
+        """
 
         # check if the file already exists
         if file_name in self.config.inputFiles:
@@ -290,6 +304,26 @@ class RSI:
         # if data is provided, register it
         if data is not None:
             self.data[file_name] = data
+
+    def add_data(self, data: pd.DataFrame, file_name: str, override: bool=False) -> None:
+        """Add data to the config
+
+        Args:
+            data: Data to register
+            file_name: Name of the file (should be a .csv file and have been registered in the config file)
+        """
+
+        # check if the file name has been registered in the config file
+        if file_name not in self.config.inputFiles:
+            raise ValueError(f"File '{file_name}' not found in the config file. Please register the file in the config file before adding data, using the add_input_file method.")
+
+        # check if the file already exists and override is not set
+        if file_name in self.data:
+            if not override:
+                raise ValueError(f"File '{file_name}' already exists. Use a different name.")
+
+        # add the data to the config
+        self.data[file_name] = data
 
     def config_to_json(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
