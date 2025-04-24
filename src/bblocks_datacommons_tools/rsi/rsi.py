@@ -1,0 +1,148 @@
+"""Module to work with Data Commons RSI"""
+
+from typing import Optional, Dict, List, Literal
+from pydantic import BaseModel, Field, HttpUrl, model_validator
+
+
+class ObservationProperties(BaseModel):
+    """Representation of the ObservationProperties section of the InputFiles section of the config file
+    This is for implicit schema only
+
+    Attributes:
+        unit: Unit of the observation.
+        observationPeriod: Observation period of the data.
+        scalingFactor: Scaling factor for the data.
+        measurementMethod: Measurement method used for the data.
+    """
+
+    unit: Optional[str] = None
+    observationPeriod: Optional[str] = None
+    scalingFactor: Optional[str] = None
+    measurementMethod: Optional[str] = None
+
+
+class ColumnMappings(BaseModel):
+    """Representation of the ColumnMappings section of the InputFiles section of the config file
+    This is for explicit schema only
+
+    Attributes:
+        variable: Variable name.
+        entity: Entity name.
+        date: Date of the observation.
+        value: Value of the observation.
+        unit: Unit of the observation.
+        scalingFactor: Scaling factor for the data.
+        measurementMethod: Measurement method used for the data.
+        observationPeriod: Observation period of the data.
+    """
+    variable: Optional[str] = None
+    entity: Optional[str] = None
+    date: Optional[str] = None
+    value: Optional[str] = None
+    unit: Optional[str] = None
+    scalingFactor: Optional[str] = None
+    measurementMethod: Optional[str] = None
+    observationPeriod: Optional[str] = None
+
+
+class InputFile(BaseModel):
+    """Representation of the InputFiles section of the config file
+
+    Attributes:
+        entityType: Type of the entity.
+        ignoreColumns: List of columns to ignore.
+        provenance: Provenance of the data.
+        data_format: Format of the data (variable per column or variable per row). Accepted values are "variablePerColumn" or "variablePerRow". This is represented as "format" in the JSON.
+        observationProperties: Properties of the observation.
+    """
+
+    entityType: Optional[str] = Field(default_factory=str) # required for implicit schema
+    ignoreColumns: Optional[List[str]] = None
+    provenance: str
+    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(default=None, alias="format") # represent the "format" field. Get around the protected name issue
+    columnMappings: Optional[ColumnMappings] = None
+    observationProperties: Optional[ObservationProperties] = None
+
+
+class Variable(BaseModel):
+    """Representation of the Variables section of the config file
+    This section is optional in the config file
+
+    Attributes:
+        name: Name of the variable.
+        description: Description of the variable.
+        searchDescriptions: List of search descriptions for the variable.
+        group: Group to which the variable belongs.
+        properties: Properties of the variable.
+    """
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+    searchDescriptions: Optional[List[str]] = None
+    group: Optional[str] = None
+    properties: Optional[Dict[str, str]] = None
+
+
+class Source(BaseModel):
+    """Representation of the Sources section of the config file
+
+    Attributes:
+        url: URL of the source.
+        provenances: Dictionary of provenances. Each provenance name maps to a URL.
+    """
+
+    url: HttpUrl
+    provenances: Dict[str, HttpUrl]  # Each provenance name maps to a URL
+
+
+class Config(BaseModel):
+    """Representation of the config file
+
+    Attributes:
+        includeInputSubdirs: Include input subdirectories.
+        groupStatVarsByProperty: Group stat vars by property.
+        inputFiles: Dictionary of input files.
+        variables: Dictionary of variables.
+        sources: Dictionary of sources.
+    """
+
+    includeInputSubdirs: Optional[bool] = None
+    groupStatVarsByProperty: Optional[bool] = None
+    inputFiles: Dict[str, InputFile]
+    variables: Optional[Dict[str, Variable]] = None # optional section
+    sources: Dict[str, Source]
+
+    # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
+    model_config = {
+        "populate_by_name": True,
+        "extra": "forbid",
+    }
+
+    @model_validator(mode="after")
+    def validate_input_file_keys_are_csv(self) -> "Config":
+        """Validate that all input file keys are .csv files"""
+
+        for key in self.inputFiles:
+            if not key.lower().endswith(".csv"):
+                raise ValueError(f'Input file key "{key}" must be a .csv file name')
+        return self
+
+    @model_validator(mode="after")
+    def validate_provenance_in_sources(self) -> "Config":
+        """Validate that all input file provenances are in the sources section"""
+
+        known_provenances = set()
+        for source in self.sources.values():
+            known_provenances.update(source.provenances.keys())
+
+        # Validate that each InputFile provenance is among them
+        for file_key, input_file in self.inputFiles.items():
+            if input_file.provenance not in known_provenances:
+                raise ValueError(
+                    f'Input file "{file_key}" references unknown provenance "{input_file.provenance}".'
+                )
+
+        return self
+
+    # TODO: Validation of implicit schema vs explicit schema
+
