@@ -23,6 +23,10 @@ class ObservationProperties(BaseModel):
     scalingFactor: Optional[str] = None
     measurementMethod: Optional[str] = None
 
+    model_config = {
+        "extra": "forbid"
+    }
+
 
 class ColumnMappings(BaseModel):
     """Representation of the ColumnMappings section of the InputFiles section of the config file
@@ -47,6 +51,10 @@ class ColumnMappings(BaseModel):
     measurementMethod: Optional[str] = None
     observationPeriod: Optional[str] = None
 
+    model_config = {
+        "extra": "forbid"
+    }
+
 
 class InputFile(BaseModel):
     """Representation of the InputFiles section of the config file
@@ -66,6 +74,10 @@ class InputFile(BaseModel):
     data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(default=None, alias="format") # represent the "format" field. Get around the protected name issue
     columnMappings: Optional[ColumnMappings] = None
     observationProperties: Optional[ObservationProperties] = None
+
+    model_config = {
+        "extra": "forbid"
+    }
 
     @model_validator(mode="after")
     def validate_schema_choice(self) -> "InputFile":
@@ -100,6 +112,10 @@ class Variable(BaseModel):
     group: Optional[str] = None
     properties: Optional[Dict[str, str]] = None
 
+    model_config = {
+        "extra": "forbid"
+    }
+
 
 class Source(BaseModel):
     """Representation of the Sources section of the config file
@@ -111,6 +127,10 @@ class Source(BaseModel):
 
     url: HttpUrl
     provenances: Dict[str, HttpUrl]  # Each provenance name maps to a URL
+
+    model_config = {
+        "extra": "forbid"
+    }
 
 
 class Config(BaseModel):
@@ -132,8 +152,11 @@ class Config(BaseModel):
 
     # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
     model_config = {
-        "populate_by_name": True,
-        "extra": "forbid",
+        "populate_by_name": True, # Populate by name for the "format" field
+        "extra": "forbid", # Forbid extra fields
+        "serialization_default": "json", # Use JSON serialization by default
+        "str_strip_whitespace": True,    # Sanitize string fields automatically
+        "validate_assignment": True      # Ensure any field edits are type-safe
     }
 
     @model_validator(mode="after")
@@ -202,7 +225,7 @@ class RSI:
         """Set the groupStatVarsByProperty attribute of the config"""
         self.config.groupStatVarsByProperty = set_value
 
-    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl, source_name: str, source_url: Optional[HttpUrl] = None, override: bool = False) -> None:
+    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl | str, source_name: str, source_url: Optional[HttpUrl | str] = None, override: bool = False) -> None:
         """Add a provenance to the config
 
         Add a provenance (optionally with a new source) to the sources section of the config file. If the source does not exist, it will be added
@@ -232,11 +255,7 @@ class RSI:
             if provenance_name in self.config.sources[source_name].provenances:
                 if not override:
                     raise ValueError(f"Provenance '{provenance_name}' already exists for source '{source_name}'. Use override=True to overwrite it.")
-                else:
-                    self.config.sources[source_name].provenances[provenance_name] = provenance_url
-            # if the provenance does not exist,add it
-            else:
-                self.config.sources[source_name].provenances[provenance_name] = provenance_url
+            self.config.sources[source_name].provenances[provenance_name] = HttpUrl(provenance_url)
 
     def add_variable(self, statVar: str,
                      name: Optional[str] = None,
@@ -325,8 +344,9 @@ class RSI:
         # add the data to the config
         self.data[file_name] = data
 
-    def config_to_json(self, dir_path: str | PathLike[str]) -> None:
+    def export_config(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
+
         Before exporting, the config is validated to ensure that all required fields are present and that the config is valid.
 
         Args:
@@ -346,6 +366,7 @@ class RSI:
 
     def config_to_dict(self) -> Dict:
         """Export the config to a dictionary
+
         Before exporting, the config is validated to ensure that all required fields are present and that the config is valid.
 
         Returns:
@@ -359,7 +380,7 @@ class RSI:
         self.config.validate_config()
 
         # export the config to a dictionary
-        return self.config.model_dump(exclude_none=True)
+        return self.config.model_dump(mode = "json", exclude_none=True)
 
     def export_data(self, dir_path: str | PathLike[str]) -> None:
         """Export the data to CSV files
@@ -384,7 +405,7 @@ class RSI:
         """
 
         # export the config
-        self.config_to_json(dir_path)
+        self.export_config(dir_path)
 
         # export the data
         self.export_data(dir_path)
