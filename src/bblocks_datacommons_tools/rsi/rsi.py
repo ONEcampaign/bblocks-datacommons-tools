@@ -207,9 +207,58 @@ class Config(BaseModel):
 
 
 class RSI:
-    """ """
+    """Really Simple Imports object to handle the config json and data for Data Commons
 
-    def __init__(self, config_file: Optional[str] = None):
+    This class facilitates creating, reading, editing and validating config jsons and data for Data Commons
+    # TODO: add functionality to work with MCF files
+
+    Usage:
+
+    To start instantiate the object with or without an existing config json
+    >>> rsi = RSI()
+    >>> rsi = RSI(config_file="path/to/config.json")
+
+    To add a provenance to the config, use the add_provenance method
+    >>> rsi.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name", "https://example.com/source")
+    This will add a provenance and a source in the config. If the already exists, you can add another provenance to the existing source
+    >>> rsi.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name")
+
+    To add a variable to the config, use the add_variable method
+    >>> rsi.add_variable("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
+
+    To add an input file and data to the config, use the add_input_file method
+    >>> rsi.add_input_file("input_file.csv", "Provenance Name", data=df)
+
+    It isn't a requirement to add the data at the same time as the input file. You can add the data later using the add_data method
+    This is useful when you want to edit the config file without needing the data
+    >>> rsi.add_input_file("input_file.csv", "Provenance Name")
+
+    To add data to the config, you can use the add_input_file and override the information already registeres, or you can use the add_data method
+    Note: To add data, the input file must already be registered in the config file
+    >>> rsi.add_data(df, "input_file.csv")
+
+    To set the includeInputSubdirs and the groupStatVarsByProperty fields of the config, use the set_includeInputSubdirs and set_groupStatVarsByProperty methods
+    >>> rsi.set_includeInputSubdirs(True)
+    >>> rsi.set_groupStatVarsByProperty(True)
+
+    Once you are ready to export the config and the data, use the exporter methods.
+    Note that while the config is being edited (provenances, variables, input files being added) the config may not be valid. If any exporter method is called, the config will be validated and an error will be raised if the config is not valid.
+
+    To export the config and the data, use the export_config_and_data method
+    >>> rsi.export_config("path/to/config")
+
+    To export only the config, use the export_config method
+    >>> rsi.export_config("path/to/config")
+
+    or get the config as a dictionary using the config_to_dict method
+    >>> config_dict = rsi.config_to_dict()
+
+    To export only the data, use the export_data method
+    >>> rsi.export_data("path/to/data")
+
+    """
+
+    def __init__(self, config_file: Optional[str | PathLike[str]] = None):
 
         self.config = Config.from_json(config_file) if config_file else Config(
             inputFiles={},
@@ -265,7 +314,18 @@ class RSI:
                      properties: Optional[Dict[str, str]] = None,
                      override: bool = False,
                      ) -> None:
-        """Add a variable to the config"""
+        """Add a variable to the config
+
+        This method registers a variable in the config. If there is no variables section defined in the config, it will create one.
+
+        Args:
+            name: Name of the variable (Optional)
+            description: Description of the variable (Optional)
+            searchDescriptions: List of search descriptions (Optional)
+            group: Name of the group (Optional)
+            properties: Properties of the variable (Optional)
+            override: If True, overwrite the existing variable if it exists. Defaults to False.
+        """
 
         # check if the config has a variables section
         if self.config.variables is None:
@@ -293,15 +353,16 @@ class RSI:
 
         This method registers an input file in the config. Optionally it also registers the data that accompanies the input file registered. The registration of the data is made optional in cases where a user wants to edite the config file without the accompanying data. The data can be registered later using the add data method.
 
+        This method allows use of the implicit or explicit schema approach. Read more about implicit and explicit schemas here: https://docs.datacommons.org/custom_dc/custom_data.html#step-2-choose-between-implicit-and-explicit-schema-definition
         Args:
             file_name: Name of the file (should be a .csv file)
             provenance: Provenance of the data. This should be the name of the provenance in the sources section of the config file. Use add_provenance to add a provenance to the config file.
             data: Data to register (optional)
             entityType: Type of the entity (optional)
             ignoreColumns: List of columns to ignore (optional)
-            data_format: Format of the data (optional)
-            columnMappings: Column mappings (optional)
-            observationProperties: Observation properties (optional)
+            data_format: Format of the data (optional). Allowed values are [variablePerColumn, variablePerRow]. If using explicit schema, this should be "variablePerRow". If using implicit schema, this should be "variablePerColumn" or omitted.
+            columnMappings: Column mappings (optional). Allowed values are [variable, entity, date, value, unit, scalingFactor, measurementMethod, observationPeriod]
+            observationProperties: Observation properties (optional). Allowed values are [unit, observationPeriod, scalingFactor, measurementMethod]
             override: If True, overwrite the existing file if it exists. Defaults to False.
         """
 
