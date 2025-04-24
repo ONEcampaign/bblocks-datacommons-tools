@@ -266,15 +266,17 @@ class RSI:
         )
         self._data = {}
 
-    def set_includeInputSubdirs(self, set_value: bool) -> None:
+    def set_includeInputSubdirs(self, set_value: bool) -> "RSI":
         """Set the includeInputSubdirs attribute of the config"""
         self._config.includeInputSubdirs = set_value
+        return self
 
-    def set_groupStatVarsByProperty(self, set_value: bool) -> None:
+    def set_groupStatVarsByProperty(self, set_value: bool) -> "RSI":
         """Set the groupStatVarsByProperty attribute of the config"""
         self._config.groupStatVarsByProperty = set_value
+        return self
 
-    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl | str, source_name: str, source_url: Optional[HttpUrl | str] = None, override: bool = False) -> None:
+    def add_provenance(self, provenance_name: str, provenance_url: HttpUrl | str, source_name: str, source_url: Optional[HttpUrl | str] = None, override: bool = False) -> "RSI":
         """Add a provenance to the config
 
         Add a provenance (optionally with a new source) to the sources section of the config file. If the source does not exist, it will be added
@@ -306,6 +308,8 @@ class RSI:
                     raise ValueError(f"Provenance '{provenance_name}' already exists for source '{source_name}'. Use override=True to overwrite it.")
             self._config.sources[source_name].provenances[provenance_name] = HttpUrl(provenance_url)
 
+        return self
+
     def add_variable(self, statVar: str,
                      name: Optional[str] = None,
                      description: Optional[str] = None,
@@ -313,7 +317,7 @@ class RSI:
                      group: Optional[str] = None,
                      properties: Optional[Dict[str, str]] = None,
                      override: bool = False,
-                     ) -> None:
+                     ) -> "RSI":
         """Add a variable to the config
 
         This method registers a variable in the config. If there is no variables section defined in the config, it will create one.
@@ -337,6 +341,7 @@ class RSI:
                 raise ValueError(f"Variable '{statVar}' already exists. Use override=True to overwrite it.")
 
         self._config.variables[statVar] = Variable(name=name, description=description, searchDescriptions=searchDescriptions, group=group, properties=properties)
+        return self
 
     def add_input_file(self,
                  file_name: str,
@@ -348,7 +353,7 @@ class RSI:
                     columnMappings: Optional[ColumnMappings] = None,
                     observationProperties: Optional[ObservationProperties] = None,
                  override: bool = False
-                 ) -> None:
+                 ) -> "RSI":
         """Add an inputFile to the config and optionally register the data as pandas dataframe
 
         This method registers an input file in the config. Optionally it also registers the data that accompanies the input file registered. The registration of the data is made optional in cases where a user wants to edite the config file without the accompanying data. The data can be registered later using the add data method.
@@ -385,7 +390,9 @@ class RSI:
         if data is not None:
             self._data[file_name] = data
 
-    def add_data(self, data: pd.DataFrame, file_name: str, override: bool=False) -> None:
+        return self
+
+    def add_data(self, data: pd.DataFrame, file_name: str, override: bool=False) -> "RSI":
         """Add data to the config
 
         Args:
@@ -404,6 +411,7 @@ class RSI:
 
         # add the data to the config
         self._data[file_name] = data
+        return self
 
     def export_config(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
