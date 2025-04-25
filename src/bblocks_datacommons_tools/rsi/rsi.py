@@ -84,7 +84,10 @@ class InputFile(BaseModel):
 
         if using_implicit and using_explicit:
             raise ValueError(
-                "Cannot use both implicit and explicit schema fields. Read more about implicit and explicit schemas here: https://docs.datacommons.org/custom_dc/custom_data.html#step-2-choose-between-implicit-and-explicit-schema-definition"
+                "Cannot use both implicit and explicit schema fields. Read more about implicit "
+                "and explicit schemas here: "
+                "https://docs.datacommons.org/custom_dc/custom_data.html#step-2-choose-"
+                "between-implicit-and-explicit-schema-definition"
             )
 
         return self
@@ -138,7 +141,8 @@ class Config(BaseModel):
     variables: Optional[Dict[str, Variable]] = None  # optional section
     sources: Dict[str, Source]
 
-    # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
+    # model configuration - to allow for extra fields and to populate by name
+    # (for the "format" field) and forbid extra fields
     model_config = {
         "populate_by_name": True,
         "extra": "forbid",
