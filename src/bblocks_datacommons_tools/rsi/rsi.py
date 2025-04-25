@@ -35,6 +35,7 @@ class ColumnMappings(BaseModel):
         measurementMethod: Measurement method used for the data.
         observationPeriod: Observation period of the data.
     """
+
     variable: Optional[str] = None
     entity: Optional[str] = None
     date: Optional[str] = None
@@ -52,15 +53,21 @@ class InputFile(BaseModel):
         entityType: Type of the entity (implicit schema only).
         ignoreColumns: List of columns to ignore.
         provenance: Provenance of the data.
-        data_format: Format of the data (variable per column or variable per row). Accepted values are "variablePerColumn" or "variablePerRow". If using explicit schema, this should be "variablePerRow". If using implicit schema, this should be "variablePerColumn" or omitted. This attribute is represented as "format" in the JSON.
-        columnMappings:  If headings in the CSV file does not use the default names, the equivalent names for each column. (explicit schema only).
+        data_format: Format of the data (variable per column or variable per row).
+            Accepted values are "variablePerColumn" or "variablePerRow". If using explicit schema,
+            this should be "variablePerRow". If using implicit schema, this should be
+            "variablePerColumn" or omitted. This attribute is represented as "format" in the JSON.
+        columnMappings:  If headings in the CSV file does not use the default names, the
+            equivalent names for each column. (explicit schema only).
         observationProperties: Properties of the observation (implicit schema only).
     """
 
     entityType: Optional[str] = None
     ignoreColumns: Optional[List[str]] = None
     provenance: str
-    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(default=None, alias="format") # represent the "format" field. Get around the protected name issue
+    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(
+        default=None, alias="format"
+    )  # represent the "format" field. Get around the protected name issue
     columnMappings: Optional[ColumnMappings] = None
     observationProperties: Optional[ObservationProperties] = None
 
@@ -68,8 +75,12 @@ class InputFile(BaseModel):
     def validate_schema_choice(self) -> "InputFile":
         """Validate that only one of implicit or explicit schema is used"""
 
-        using_implicit = self.entityType is not None or self.observationProperties is not None
-        using_explicit = self.columnMappings is not None or self.data_format == "variablePerRow"
+        using_implicit = (
+            self.entityType is not None or self.observationProperties is not None
+        )
+        using_explicit = (
+            self.columnMappings is not None or self.data_format == "variablePerRow"
+        )
 
         if using_implicit and using_explicit:
             raise ValueError(
@@ -124,7 +135,7 @@ class Config(BaseModel):
     includeInputSubdirs: Optional[bool] = None
     groupStatVarsByProperty: Optional[bool] = None
     inputFiles: Dict[str, InputFile]
-    variables: Optional[Dict[str, Variable]] = None # optional section
+    variables: Optional[Dict[str, Variable]] = None  # optional section
     sources: Dict[str, Source]
 
     # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
@@ -158,4 +169,3 @@ class Config(BaseModel):
                 )
 
         return self
-
