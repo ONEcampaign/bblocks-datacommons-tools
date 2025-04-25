@@ -1,7 +1,102 @@
-from typing import Optional, List, Literal, Dict
+from enum import StrEnum
+from typing import Optional, List, Literal, Dict, Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator, HttpUrl
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+    HttpUrl,
+    field_serializer,
+    field_validator,
+)
 
+_PREFIXES = ("dcid:", "dcs:", "schema:")
+
+
+class StatType(StrEnum):
+    """Enumeration of statistical types"""
+
+    MEASURED_VALUE = "dcid:measuredValue"
+    MIN_VALUE = "dcid:minValue"
+    MAX_VALUE = "dcid:maxValue"
+    MEAN_VALUE = "dcid:meanValue"
+    MEDIAN_VALUE = "dcid:medianValue"
+    SUM_VALUE = "dcid:sumValue"
+    VARIANCE_VALUE = "dcid:varianceValue"
+    MARGIN_OF_ERROR = "dcid:marginOfError"
+    STANDARD_ERROR = "dcid:stdErr"
+
+
+class MCFNode(BaseModel):
+    Node: str
+    name: str
+    typeOf: str
+    dcid: Optional[str] = None
+    description: Optional[str] = None
+    provenance: Optional[str] = None
+    shortDisplayName: Optional[str] = None
+    subClassOf: Optional[str] = None
+
+    model_config = ConfigDict(extra="allow")
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+
+    @field_serializer("*")
+    def _quote_long_strings(self, v: Any, _info) -> Any:
+        """Wrap any plain string longer than the threshold in double quotes."""
+        if (
+            isinstance(v, str)
+            and " " in v
+            and not v.startswith(_PREFIXES)
+            and not v.startswith('"')
+        ):
+            return f'"{v}"'
+        return v
+
+    @property
+    def mcf(self) -> str:
+        data = self.model_dump(exclude_none=True)
+        return "\n".join(f"{k}: {v}" for k, v in data.items()) + "\n"
+
+
+class StatVarMCFNode(MCFNode):
+    """Representation of a StatVar MCF node"""
+
+    statType: Optional[StatType] = "dcid:measuredValue"
+    memberOf: Optional[str] = None
+    populationType: Optional[str] = None
+    measuredProperty: Optional[str] = None
+    measurementQualifier: Optional[str] = None
+    measurementDenominator: Optional[str] = None
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+
+
+class StatVarGroupMCFNode(MCFNode):
+    """Representation of a StatVarGroup MCF node"""
+
+    typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarGroup"
+    specializationOf: str
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+
+    @field_validator("Node", "specializationOf")
+    @classmethod
+    def _check_g(cls, v: str) -> str:
+        if "g/" not in v:
+            raise ValueError("field must contain 'g/'")
+        return v
+
+    @field_validator("specializationOf")
+    @classmethod
+    def _check_specialization_format(cls, v: str) -> str:
+        if not v.startswith("dcid:"):
+            raise ValueError("specializationOf must start with 'dcid:'")
+        return v
 
 class ObservationProperties(BaseModel):
     """Representation of the ObservationProperties section of the InputFiles section of the config file
