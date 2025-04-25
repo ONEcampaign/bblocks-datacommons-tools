@@ -1,7 +1,7 @@
 """Module to work with Data Commons RSI"""
 
 from typing import Optional, Dict, List, Literal
-from pydantic import BaseModel, Field, HttpUrl, model_validator
+from pydantic import BaseModel, Field, HttpUrl, model_validator, ConfigDict
 import pandas as pd
 from os import PathLike
 from pathlib import Path
@@ -23,7 +23,7 @@ class ObservationProperties(BaseModel):
     scalingFactor: Optional[str] = None
     measurementMethod: Optional[str] = None
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
 
 class ColumnMappings(BaseModel):
@@ -50,7 +50,7 @@ class ColumnMappings(BaseModel):
     measurementMethod: Optional[str] = None
     observationPeriod: Optional[str] = None
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra= "forbid")
 
 
 class InputFile(BaseModel):
@@ -74,7 +74,7 @@ class InputFile(BaseModel):
     columnMappings: Optional[ColumnMappings] = None
     observationProperties: Optional[ObservationProperties] = None
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
     @model_validator(mode="after")
     def validate_schema_choice(self) -> "InputFile":
@@ -113,7 +113,7 @@ class Variable(BaseModel):
     group: Optional[str] = None
     properties: Optional[Dict[str, str]] = None
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
 
 class Source(BaseModel):
@@ -127,7 +127,7 @@ class Source(BaseModel):
     url: HttpUrl
     provenances: Dict[str, HttpUrl]  # Each provenance name maps to a URL
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
 
 class Config(BaseModel):
@@ -148,13 +148,11 @@ class Config(BaseModel):
     sources: Dict[str, Source]
 
     # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
-    model_config = {
-        "populate_by_name": True,  # Populate by name for the "format" field
-        "extra": "forbid",  # Forbid extra fields
-        "serialization_default": "json",  # Use JSON serialization by default
-        "str_strip_whitespace": True,  # Sanitize string fields automatically
-        "validate_assignment": True,  # Ensure any field edits are type-safe
-    }
+    model_config = ConfigDict(populate_by_name=True,
+                              extra="forbid",
+                              str_strip_whitespace=True,
+                              validate_assignment=True,
+                              )
 
     @model_validator(mode="after")
     def validate_input_file_keys_are_csv(self) -> "Config":
