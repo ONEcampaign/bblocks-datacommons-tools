@@ -104,8 +104,10 @@ class DCConfigManager:
     ) -> "DCConfigManager":
         """Add a provenance to the config
 
-        Add a provenance (optionally with a new source) to the sources section of the config file. If the source does not exist, it will be added
-        but a source URL must be provided. If the source exists, the provenance will be added to the existing source. If the provenance already exists, it will be overwritten if override is set to True.
+        Add a provenance (optionally with a new source) to the sources section of the config
+        file. If the source does not exist, it will be added but a source URL must be provided.
+        If the source exists, the provenance will be added to the existing source.
+        If the provenance already exists, it will be overwritten if override is set to True.
 
         Args:
             provenance_name: Name of the provenance
@@ -115,7 +117,8 @@ class DCConfigManager:
             override: If True, overwrite the existing provenance if it exists. Defaults to False.
 
         Raises:
-            ValueError: If the source does not exist and no source URL is provided, or if the provenance already exists and override is not set to True.
+            ValueError: If the source does not exist and no source URL is provided,
+                or if the provenance already exists and override is not set to True.
         """
 
         # if the source does not exist, add it
