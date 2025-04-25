@@ -7,7 +7,7 @@ from typing import Optional, Dict, List, Literal
 import pandas as pd
 from pydantic import HttpUrl
 
-from bblocks.datacommons_tools.data_loading.models import (
+from bblocks.datacommons_tools.custom_data.models import (
     ObservationProperties,
     ColumnMappings,
     InputFile,
