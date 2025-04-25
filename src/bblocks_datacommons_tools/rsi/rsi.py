@@ -50,7 +50,7 @@ class ColumnMappings(BaseModel):
     measurementMethod: Optional[str] = None
     observationPeriod: Optional[str] = None
 
-    model_config = ConfigDict(extra= "forbid")
+    model_config = ConfigDict(extra="forbid")
 
 
 class InputFile(BaseModel):
@@ -148,11 +148,12 @@ class Config(BaseModel):
     sources: Dict[str, Source]
 
     # model configuration - to allow for extra fields and to populate by name (for the "format" field) and forbid extra fields
-    model_config = ConfigDict(populate_by_name=True,
-                              extra="forbid",
-                              str_strip_whitespace=True,
-                              validate_assignment=True,
-                              )
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+        str_strip_whitespace=True,
+        validate_assignment=True,
+    )
 
     @model_validator(mode="after")
     def validate_input_file_keys_are_csv(self) -> "Config":
