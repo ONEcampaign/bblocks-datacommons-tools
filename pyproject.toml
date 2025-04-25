@@ -1,10 +1,11 @@
 [project]
 name = "bblocks-datacommons-tools"
 version = "0.0.1"
-description = "Tools to work with Data Commons"
+description = "Tools to work with Data Commons. Part of the bblocks projects."
 authors = [
     {name = "ONE Campaign"},
-    {name = "Luca Picci",email = "lpicci96@gmail.com"}
+    {name = "Luca Picci",email = "lpicci96@gmail.com"},
+    {name = "Jorge Rivera", email = "jorge.rivera@one.org"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
@@ -15,7 +16,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "bblocks_datacommons_tools", from = "src"}]
+packages = [{include = "bblocks", from = "src"}]
 
 
 [build-system]
