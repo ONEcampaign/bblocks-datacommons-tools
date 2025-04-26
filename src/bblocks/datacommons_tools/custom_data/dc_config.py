@@ -7,14 +7,14 @@ from typing import Optional, Dict, List, Literal
 import pandas as pd
 from pydantic import HttpUrl
 
-from bblocks.datacommons_tools.custom_data.models import (
-    ObservationProperties,
+from bblocks.datacommons_tools.data_loading.models.config import Config
+from bblocks.datacommons_tools.data_loading.models.files import (
     ColumnMappings,
+    ObservationProperties,
     InputFile,
-    Variable,
-    Source,
-    Config,
 )
+from bblocks.datacommons_tools.data_loading.models.sources import Source
+from bblocks.datacommons_tools.data_loading.models.stat_vars import Variable
 
 
 class DCConfigManager:
@@ -26,36 +26,36 @@ class DCConfigManager:
     Usage:
 
     To start instantiate the object with or without an existing config json
-    >>> dc_json = DCConfigManager()
+    >>> dc = DCConfigManager()
     or
-    >>> dc_json = DCConfigManager(config_file="path/to/config.json")
+    >>> dc = DCConfigManager(config_file="path/to/config.json")
 
     To add a provenance to the config, use the add_provenance method
-    >>> dc_json.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name", "https://example.com/source")
+    >>> dc.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name", "https://example.com/source")
     This will add a provenance and a source in the config. If the already exists,
     you can add another provenance to the existing source
-    >>> dc_json.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name")
+    >>> dc.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name")
 
     To add a variable to the config, use the add_variable method
-    >>> dc_json.add_variable("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
+    >>> dc.add_variable("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
 
     To add an input file and data to the config, use the add_input_file method
-    >>> dc_json.add_input_file("input_file.csv", "Provenance Name", data=df)
+    >>> dc.add_input_file("input_file.csv", "Provenance Name", data=df)
 
     It isn't a requirement to add the data at the same time as the input file. You can add the data
     later using the add_data method. This is useful when you want to edit the config file
     without needing the data
-    >>> dc_json.add_input_file("input_file.csv", "Provenance Name")
+    >>> dc.add_input_file("input_file.csv", "Provenance Name")
 
     To add data to the config, you can use the add_input_file and override the information already
     registered, or you can use the add_data method.
     Note: To add data, the input file must already be registered in the config file
-    >>> dc_json.add_data(<data>, "input_file.csv")
+    >>> dc.add_data(<data>, "input_file.csv")
 
     To set the includeInputSubdirs and the groupStatVarsByProperty fields of the config, use
     the set_includeInputSubdirs and set_groupStatVarsByProperty methods
-    >>> dc_json.set_includeInputSubdirs(True)
-    >>> dc_json.set_groupStatVarsByProperty(True)
+    >>> dc.set_includeInputSubdirs(True)
+    >>> dc.set_groupStatVarsByProperty(True)
 
     Once you are ready to export the config and the data, use the exporter methods.
     Note that while the config is being edited (provenances, variables, input files being added)
@@ -63,16 +63,16 @@ class DCConfigManager:
     validated and an error will be raised if the config is not valid.
 
     To export the config and the data, use the export_config_and_data method
-    >>> dc_json.export_config("path/to/config")
+    >>> dc.export_config("path/to/config")
 
     To export only the config, use the export_config method
-    >>> dc_json.export_config("path/to/config")
+    >>> dc.export_config("path/to/config")
 
     or get the config as a dictionary using the config_to_dict method
-    >>> config_dict = dc_json.config_to_dict()
+    >>> config_dict = dc.config_to_dict()
 
     To export only the data, use the export_data method
-    >>> dc_json.export_data("path/to/data")
+    >>> dc.export_data("path/to/data")
     """
 
     def __init__(self, config_file: Optional[str | PathLike[str]] = None):
