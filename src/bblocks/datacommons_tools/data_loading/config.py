@@ -7,14 +7,14 @@ from typing import Optional, Dict, List, Literal
 import pandas as pd
 from pydantic import HttpUrl
 
-from bblocks.datacommons_tools.data_loading.models import (
-    ObservationProperties,
+from bblocks.datacommons_tools.data_loading.models.config import Config
+from bblocks.datacommons_tools.data_loading.models.files import (
     ColumnMappings,
+    ObservationProperties,
     InputFile,
-    Variable,
-    Source,
-    Config,
 )
+from bblocks.datacommons_tools.data_loading.models.sources import Source
+from bblocks.datacommons_tools.data_loading.models.stat_vars import Variable
 
 
 class DCConfigManager:
