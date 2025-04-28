@@ -355,6 +355,20 @@ class DCConfigManager:
         # export the data
         self.export_data(dir_path)
 
+    def validate_config(self) -> "DCConfigManager":
+        """Validate the config
+
+        This method checks the config for any issues and ensuring all the fields and values are valid. It rai
+        an error if there are any issues with the config.
+
+        Raises:
+            pydantic.ValidationError if the config is not valid
+        """
+
+        # validate the config
+        self._config.validate_config()
+        return self
+
     def __repr__(self) -> str:
         input_files_count = len(self._config.inputFiles)
         sources_count = len(self._config.sources)
