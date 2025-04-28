@@ -3,6 +3,10 @@ from typing import Optional, List, Dict, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from bblocks.datacommons_tools.data_loading.models.common import (
+    QuotedStr,
+    QuotedStrList,
+)
 from bblocks.datacommons_tools.data_loading.models.mcf import MCFNode
 
 
@@ -44,8 +48,10 @@ class Variable(BaseModel):
 class StatVarMCFNode(MCFNode):
     """Representation of a StatVar MCF node"""
 
-    statType: Optional[StatType] = "dcid:measuredValue"
+    statType: Optional[StatType] = StatType.MEASURED_VALUE
+    typeOf: Literal["dcid:StatisticalVariable"] = "dcid:StatisticalVariable"
     memberOf: Optional[str] = None
+    searchDescription: Optional[QuotedStr | QuotedStrList] = None
     populationType: Optional[str] = None
     measuredProperty: Optional[str] = None
     measurementQualifier: Optional[str] = None
