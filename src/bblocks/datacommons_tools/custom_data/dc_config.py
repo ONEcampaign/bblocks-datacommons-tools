@@ -10,8 +10,9 @@ from pydantic import HttpUrl
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.files import (
     ColumnMappings,
-    ObservationProperties,
+    ObservationProperties, InputFile,
 )
+from bblocks.datacommons_tools.custom_data.models.sources import Source
 from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
 
 
