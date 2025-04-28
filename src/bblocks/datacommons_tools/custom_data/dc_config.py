@@ -36,8 +36,8 @@ class DCConfigManager:
     you can add another provenance to the existing source
     >>> config_manager.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name")
 
-    To add a variable to the config, use the add_variable method
-    >>> config_manager.add_variable("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
+    To add a variable to the config (using the implicit schema), use the add_variable_to_implicit_schema method
+    >>> config_manager.add_variable_to_implicit_schema("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
 
     To add an input file and data to the config, use the add_input_file method
     >>> config_manager.add_input_file("input_file.csv", "Provenance Name", data=df)
