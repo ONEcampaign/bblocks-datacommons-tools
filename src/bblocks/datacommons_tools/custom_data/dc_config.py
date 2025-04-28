@@ -8,7 +8,7 @@ import pandas as pd
 from pydantic import HttpUrl
 
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
-from bblocks.datacommons_tools.custom_data.models.files import (
+from bblocks.datacommons_tools.custom_data.models.data_files import (
     ColumnMappings,
     ObservationProperties, InputFile,
 )

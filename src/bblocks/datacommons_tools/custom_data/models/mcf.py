@@ -28,6 +28,8 @@ class MCFNode(BaseModel):
     shortDisplayName: Optional[QuotedStr] = None
     subClassOf: Optional[str] = None
 
+    # Allow extra fields since MCF can have arbitrary properties and this
+    # class is not comprehensive of all possible MCF properties.
     model_config = ConfigDict(extra="allow")
 
     @property
