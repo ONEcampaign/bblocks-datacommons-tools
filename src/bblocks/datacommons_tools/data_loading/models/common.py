@@ -1,31 +1,31 @@
 from typing import Annotated
 
-from pydantic import BaseModel, PlainSerializer
+from pydantic import PlainSerializer
 
 
 def _ensure_quoted(s: str) -> str:
+    """Ensure a given string is enclosed in double quotes.
+
+    Args:
+        s: The input string to quote.
+
+    Returns:
+        A string enclosed in double quotes, stripped of leading/trailing whitespace.
+    """
     if s.startswith("'") or s.startswith('"'):
-        s = s.strip('"').strip("'")
+        s = s.strip('"').strip("'").strip()
     return f'"{s}"'
 
 
 def mcf_quoted_str(value: str | list[str] | None) -> str | None:
-    """Serialise str | list[str] -> quoted MCF string.
+    """Serialise a string or list of strings to an MCF-compatible quoted string.
 
-    * None  ➜ None
-    * ["a", "b"] ➜ '"a", "b"'
-    * 'foo'      ➜ '"foo"'
-    * '"foo"'    ➜ '"foo"' (already quoted, left untouched)
+    Args:
+        value: A string, list of strings, or None to serialise.
+
+    Returns:
+        An MCF-compatible quoted string or None if input is None.
     """
-    """Serialize `str | list[str]` to an MCF-compatible quoted string.
-
-        Rules
-        -----
-        • None           → None  
-        • list[str]      → '"a", "b"'  (items are quoted only once)  
-        • bare str       → '"foo"'  
-        • already-quoted → left untouched
-        """
     if value is None:
         return None
 
@@ -39,18 +39,12 @@ def mcf_quoted_str(value: str | list[str] | None) -> str | None:
 
 
 QuotedStr = Annotated[
-    str,
-    PlainSerializer(
-        _ensure_quoted,
-        return_type=str | None,
-        when_used="always",
-    ),
+    str, PlainSerializer(_ensure_quoted, return_type=str | None, when_used="always")
 ]
+"""A string annotated for serialisation into an MCF-compatible quoted format."""
+
 QuotedStrList = Annotated[
     list[str],
-    PlainSerializer(
-        mcf_quoted_str,
-        return_type=str | None,
-        when_used="always",
-    ),
+    PlainSerializer(mcf_quoted_str, return_type=str | None, when_used="always"),
 ]
+"""A list of strings annotated for serialisation into an MCF-compatible quoted format."""

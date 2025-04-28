@@ -1,13 +1,24 @@
-from typing import Optional, Any
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, field_serializer
+from pydantic import BaseModel, ConfigDict
 
 from bblocks.datacommons_tools.data_loading.models.common import QuotedStr
 
-_PREFIXES = ("dcid:", "dcs:", "schema:")
-
 
 class MCFNode(BaseModel):
+    """Represents a general node for Metadata Common Format (MCF).
+
+    Attributes:
+        Node: Identifier for the Node.
+        name: The human-readable name for the Node.
+        typeOf: The DCID representing the typeOf this Node.
+        dcid: Optional DCID for uniquely identifying the Node.
+        description: Optional human-readable description.
+        provenance: Optional provenance information.
+        shortDisplayName: Optional human-readable short name for display.
+        subClassOf: Optional DCID indicating the 'parent' Node class.
+    """
+
     Node: str
     name: QuotedStr
     typeOf: str
@@ -19,10 +30,18 @@ class MCFNode(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
     @property
     def mcf(self) -> str:
+        """Generates an MCF-formatted string representing this node.
+
+        Returns:
+            A string formatted according to MCF conventions, sorted alphabetically
+                except for 'Node', which appears first.
+        """
         data = self.model_dump(exclude_none=True)
-        return "\n".join(f"{k}: {v}" for k, v in data.items()) + "\n"
+
+        # Pull Node first, then sort for consistent ordering
+        lines = [f"Node: {data.pop('Node')}"]
+        lines.extend(f"{k}: {v}" for k, v in sorted(data.items()))
+
+        return "\n".join(lines) + "\n"

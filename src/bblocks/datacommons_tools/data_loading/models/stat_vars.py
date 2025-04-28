@@ -1,7 +1,7 @@
 from enum import StrEnum
-from typing import Optional, List, Dict, Any, Literal
+from typing import Optional, List, Dict, Literal
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, constr
 
 from bblocks.datacommons_tools.data_loading.models.common import (
     QuotedStr,
@@ -11,7 +11,7 @@ from bblocks.datacommons_tools.data_loading.models.mcf import MCFNode
 
 
 class StatType(StrEnum):
-    """Enumeration of statistical types"""
+    """Enumeration of statistical value types used in Data Commons."""
 
     MEASURED_VALUE = "dcid:measuredValue"
     MIN_VALUE = "dcid:minValue"
@@ -46,7 +46,28 @@ class Variable(BaseModel):
 
 
 class StatVarMCFNode(MCFNode):
-    """Representation of a StatVar MCF node"""
+    """Represents a Statistical Variable node in Metadata Common Format (MCF).
+
+    Attributes:
+        # Inherited from MCFNode
+        Node: Identifier for the Node.
+        name: The human-readable name for the Node.
+        dcid: Optional DCID for uniquely identifying the Node.
+        description: Optional human-readable description.
+        provenance: Optional provenance information.
+        shortDisplayName: Optional human-readable short name for display.
+        subClassOf: Optional DCID indicating the 'parent' Node class.
+
+        # Additional Attributes specific to StatisticalVariable
+        statType: Type of statistical measurement represented by the variable.
+        typeOf: Fixed type indicating this is a StatisticalVariable.
+        memberOf: Optional DCID indicating group membership.
+        searchDescription: Optional descriptions enhancing NL search capabilities.
+        populationType: Optional DCID of the population entity type being measured.
+        measuredProperty: Optional DCID of the property being measured.
+        measurementQualifier: Optional qualifier describing measurement specifics.
+        measurementDenominator: Optional denominator for ratio-type statistical measures.
+    """
 
     statType: Optional[StatType] = StatType.MEASURED_VALUE
     typeOf: Literal["dcid:StatisticalVariable"] = "dcid:StatisticalVariable"
@@ -57,29 +78,25 @@ class StatVarMCFNode(MCFNode):
     measurementQualifier: Optional[str] = None
     measurementDenominator: Optional[str] = None
 
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
 
 class StatVarGroupMCFNode(MCFNode):
-    """Representation of a StatVarGroup MCF node"""
+    """Represents a Statistical Variable Group node in Metadata Common Format (MCF).
 
+    Attributes:
+        # Additional Attributes specific to StatVarGroup
+        Node: Node identifier, must contain '/g'.
+        typeOf: Fixed type indicating this is a StatVarGroup.
+        specializationOf: DCID of the parent group, must start with 'dcid:' and contain 'g/'.
+
+         # Inherits from MCFNode
+        name: The human-readable name for the Node.
+        dcid: Optional DCID for uniquely identifying the Node.
+        description: Optional human-readable description.
+        provenance: Optional provenance information.
+        shortDisplayName: Optional human-readable short name for display.
+        subClassOf: Optional DCID indicating the 'parent' Node class.
+    """
+
+    Node: constr(strip_whitespace=True, pattern=r".*g/.*")
     typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarGroup"
-    specializationOf: str
-
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
-    @field_validator("Node", "specializationOf")
-    @classmethod
-    def _check_g(cls, v: str) -> str:
-        if "g/" not in v:
-            raise ValueError("field must contain 'g/'")
-        return v
-
-    @field_validator("specializationOf")
-    @classmethod
-    def _check_specialization_format(cls, v: str) -> str:
-        if not v.startswith("dcid:"):
-            raise ValueError("specializationOf must start with 'dcid:'")
-        return v
+    specializationOf: constr(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
