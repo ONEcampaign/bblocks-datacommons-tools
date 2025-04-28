@@ -3,11 +3,8 @@ from typing import Optional, List, Dict, Literal
 
 from pydantic import BaseModel, ConfigDict, constr
 
-from bblocks.datacommons_tools.data_loading.models.common import (
-    QuotedStr,
-    QuotedStrList,
-)
-from bblocks.datacommons_tools.data_loading.models.mcf import MCFNode
+from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, QuotedStrList
+from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
 
 
 class StatType(StrEnum):

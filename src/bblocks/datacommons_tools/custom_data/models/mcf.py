@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from bblocks.datacommons_tools.data_loading.models.common import QuotedStr
+from bblocks.datacommons_tools.custom_data.models.common import QuotedStr
 
 
 class MCFNode(BaseModel):

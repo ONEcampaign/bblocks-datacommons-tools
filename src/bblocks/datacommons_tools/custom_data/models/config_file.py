@@ -2,9 +2,9 @@ from typing import Optional, Dict
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from bblocks.datacommons_tools.data_loading.models.files import InputFile
-from bblocks.datacommons_tools.data_loading.models.sources import Source
-from bblocks.datacommons_tools.data_loading.models.stat_vars import Variable
+from bblocks.datacommons_tools.custom_data.models.files import InputFile
+from bblocks.datacommons_tools.custom_data.models.sources import Source
+from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
 
 
 class Config(BaseModel):
