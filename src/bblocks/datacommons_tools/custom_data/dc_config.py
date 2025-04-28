@@ -148,7 +148,7 @@ class DCConfigManager:
 
         return self
 
-    def add_variable(
+    def add_variable_to_implicit_schema(
         self,
         statVar: str,
         name: Optional[str] = None,
@@ -164,6 +164,7 @@ class DCConfigManager:
         defined in the config, it will create one.
 
         Args:
+            statVar: The identifier of the statistical variable. Used as the key in the config.
             name: Name of the variable (Optional)
             description: Description of the variable (Optional)
             searchDescriptions: List of search descriptions (Optional)
