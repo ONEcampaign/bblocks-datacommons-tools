@@ -572,6 +572,23 @@ class CustomDataManager:
         with output_path.open("w") as f:
             f.write(self._config.model_dump_json(indent=4, exclude_none=True))
 
+    def export_mfc_file(
+        self,
+        dir_path: str | PathLike[str],
+        file_name: Optional[str] = "custom_nodes.mcf",
+        override: bool = False,
+    ) -> None:
+        """Export the MCF file to a file
+
+        Args:
+            dir_path: Path to the directory where the MCF file will be exported.
+            file_name: Name of the MCF file. Defaults to "custom_nodes.mcf".
+            override: If True, overwrite the file if it exists. Defaults to False.
+        """
+        # export the MCF file
+        output_path = Path(dir_path) / file_name
+        self._mcf_nodes.export_to_mcf_file(file_path=output_path, override=override)
+
     def config_to_dict(self) -> Dict:
         """Export the config to a dictionary
 
@@ -606,11 +623,18 @@ class CustomDataManager:
         for file, data in self._data.items():
             data.to_csv(Path(dir_path) / file, index=False)
 
-    def export_config_and_data(self, dir_path: str | PathLike[str]) -> None:
-        """Export the config and data to a directory
+    def export_all(
+        self,
+        dir_path: str | PathLike[str],
+        override: bool = False,
+        mcf_file_name: Optional[str] = "custom_nodes.mcf",
+    ) -> None:
+        """Export the config, MCF file, and data to a directory
 
         Args:
             dir_path: Path to the directory where the config and data will be exported.
+            override: If True, overwrite the files if they exist. Defaults to False.
+            mcf_file_name: Name of the MCF file. Defaults to "custom_nodes.mcf".
         """
 
         # export the config
@@ -618,6 +642,11 @@ class CustomDataManager:
 
         # export the data
         self.export_data(dir_path)
+
+        # export the MCF file
+        self.export_mfc_file(
+            dir_path=dir_path, file_name=mcf_file_name, override=override
+        )
 
     def validate_config(self) -> CustomDataManager:
         """Validate the config
