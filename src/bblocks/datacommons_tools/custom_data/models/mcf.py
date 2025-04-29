@@ -134,16 +134,18 @@ class Nodes(BaseModel):
 
         return self
 
-    def export(self, file_name: str | PathLike, *, overwrite: bool = True) -> Nodes:
+    def export_to_mcf_file(
+        self, file_path: str | PathLike, *, overwrite: bool = True
+    ) -> Nodes:
         """Exports the MCF nodes to a file.
 
         Args:
-            file_name: The path of the file to which to export.
+            file_path: The path of the file to which to export.
             overwrite: If True, overwrite the file if it exists. If False, append to the file.
         """
         mode = "w" if overwrite else "a"
 
-        with open(file_name, mode) as f:
+        with open(file_path, mode) as f:
             for node in self.nodes:
                 f.write(node.mcf)
 
