@@ -76,7 +76,7 @@ class InputFile(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class VariablePerColumnFile(InputFile):
+class ImplicitSchemaFile(InputFile):
     """Representation of the ColumnFile section of the config file
     This is what is known as the implicit schema.
 
@@ -97,7 +97,7 @@ class VariablePerColumnFile(InputFile):
     data_format: FileType = Field(default="variablePerColumn", alias="format")
 
 
-class VariablePerRowFile(InputFile):
+class ExplicitSchemaFile(InputFile):
     """Representation of the RowFile section of the config file
     This is what is known as the explicit schema.
 

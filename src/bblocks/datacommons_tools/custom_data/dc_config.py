@@ -10,9 +10,9 @@ from pydantic import HttpUrl
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.data_files import (
     ObservationProperties,
-    VariablePerColumnFile,
+    ImplicitSchemaFile,
     ColumnMappings,
-    VariablePerRowFile,
+    ExplicitSchemaFile,
 )
 from bblocks.datacommons_tools.custom_data.models.sources import Source
 from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
@@ -50,33 +50,36 @@ class DCConfigManager:
     >>> )
 
     To add a variable to the config (using the implicit schema), use the add_variable_to_implicit_schema method
-    >>> config_manager.add_variable_to_config("StatVar",name="Variable Name",description="Variable Description",group="Group Name")
+    >>> config_manager.add_variable_to_config(
+    >>>    "StatVar",
+    >>>     name="Variable Name",
+    >>>     description="Variable Description",
+    >>>     group="Group Name"
+    >>>    )
 
     To add an input file and data to the config, using the implicit (per column) schema,
     use the add_variablePerColumn_input_file method
-    >>> config_manager.add_variablePerColumn_input_file(
-    >>>    file_name= "input_file.csv",
+    >>> config_manager.add_implicit_schema_file(
+    >>>    file_name="input_file.csv",
     >>>    provenance="Provenance Name",
     >>>    data=df,
     >>>    entityType="Country",
-    >>>    observationProperties={"unit": "USDollar"},
+    >>>    observationProperties={"unit": "USDollar"}
     >>>    )
 
     To add an input file and data to the config, using the explicit (per row) schema,
     use the add_variablePerRow_input_file method
-    >>> config_manager.add_variablePerRow_input_file(
+    >>> config_manager.add_explicit_schema_file(
     >>>    file_name="input_file.csv",
     >>>    provenance="Provenance Name",
-    >>>    columnMappings={"entity": "Country", "date": "Year", "value": "Value"},
-    >>>    data=df
-    >>>     )
+    >>>    data=df,
+    >>>    columnMappings={"entity": "Country", "date": "Year", "value": "Value"}
+    >>>    )
 
     It isn't a requirement to add the data at the same time as the input file. You can add the data
     later using the add_data method. This is useful when you want to edit the config file
     without needing the data. For example, for the variablePerColumn input file:
-    >>> config_manager.add_variablePerColumn_input_file(
-    >>>    file_name="input_file.csv", provenance="Provenance Name"
-    >>> )
+    >>> config_manager.add_implicit_schema_file(file_name="input_file.csv",provenance="Provenance Name")
 
     To add data to the config, you can use the add_input_file and override the information already
     registered, or you can use the add_data method.
@@ -230,10 +233,11 @@ class DCConfigManager:
         if file_name in self._data:
             if not override:
                 raise ValueError(
-                    f"Data for file '{file_name}' already exists. Use a different name."
+                    f"Data for file '{file_name}' already exists. "
+                    "Use a different name or set override as `True`."
                 )
 
-    def add_variablePerColumn_input_file(
+    def add_implicit_schema_file(
         self,
         file_name: str,
         provenance: str,
@@ -271,7 +275,7 @@ class DCConfigManager:
         self._data_override_check(file_name=file_name, override=override)
 
         # add the file to the config
-        self._config.inputFiles[file_name] = VariablePerColumnFile(
+        self._config.inputFiles[file_name] = ImplicitSchemaFile(
             entityType=entityType,
             ignoreColumns=ignoreColumns,
             provenance=provenance,
@@ -284,7 +288,7 @@ class DCConfigManager:
 
         return self
 
-    def add_variablePerRow_input_file(
+    def add_explicit_schema_file(
         self,
         file_name: str,
         provenance: str,
@@ -323,7 +327,7 @@ class DCConfigManager:
         self._data_override_check(file_name=file_name, override=override)
 
         # add the file to the config
-        self._config.inputFiles[file_name] = VariablePerRowFile(
+        self._config.inputFiles[file_name] = ExplicitSchemaFile(
             ignoreColumns=ignoreColumns,
             provenance=provenance,
             columnMappings=ColumnMappings(**columnMappings),
