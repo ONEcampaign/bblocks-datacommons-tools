@@ -62,6 +62,18 @@ class Nodes(BaseModel):
 
     nodes: List[MCFNode] = Field(default_factory=list)
 
+    def _flush(self, block: dict[str, str]) -> None:
+        """Convert the current block into an `MCFNode` and store it."""
+        if not block:
+            return
+        if "Node" not in block:
+            raise ValueError(
+                f"Missing mandatory 'Node:' line in block starting with "
+                f"{next(iter(block.items()))!r}"
+            )
+        self.nodes.append(MCFNode(**block))
+        block.clear()
+
     def load_from_mcf_file(self, file_name: str | PathLike) -> Nodes:
         """Parses MCF nodes from a file and populates the collection.
 
@@ -74,18 +86,6 @@ class Nodes(BaseModel):
             file_name: The path of the MCF file to read.
         """
 
-        def _flush(block: dict[str, str]) -> None:
-            """Convert the current block into an `MCFNode` and store it."""
-            if not block:
-                return
-            if "Node" not in block:
-                raise ValueError(
-                    f"Missing mandatory 'Node:' line in block starting with "
-                    f"{next(iter(block.items()))!r}"
-                )
-            self.nodes.append(MCFNode(**block))
-            block.clear()
-
         path = Path(file_name)
         current_block: dict[str, str] = {}
 
@@ -95,7 +95,7 @@ class Nodes(BaseModel):
 
                 # Blank line means end of current block
                 if not stripped:
-                    _flush(current_block)
+                    self._flush(current_block)
                     continue
 
                 key, sep, value = stripped.partition(":")
@@ -106,7 +106,7 @@ class Nodes(BaseModel):
                 current_block[key.strip()] = value.strip()
 
         # Handle the final block if the file does not end with a blank line.
-        _flush(current_block)
+        self._flush(current_block)
 
         return self
 
