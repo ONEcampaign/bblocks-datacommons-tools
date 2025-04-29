@@ -1,4 +1,4 @@
-"""Module to work with Data Commons DCConfigManager"""
+"""Module to work with Data Commons CustomDataManager"""
 
 from os import PathLike
 from pathlib import Path
@@ -20,7 +20,7 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 
 
-class DCConfigManager:
+class CustomDataManager:
     """Class to handle the config json and data for Data Commons
 
     This class facilitates creating, reading, editing and validating config jsons and data for Data Commons
@@ -29,9 +29,9 @@ class DCConfigManager:
     Usage:
 
     To start instantiate the object with or without an existing config json
-    >>> config_manager = DCConfigManager()
+    >>> config_manager = CustomDataManager()
     or
-    >>> config_manager = DCConfigManager(config_file="path/to/config.json")
+    >>> config_manager = CustomDataManager(config_file="path/to/config.json")
 
     To add a provenance to the config, use the add_provenance method
     >>> config_manager.add_provenance(
@@ -118,12 +118,12 @@ class DCConfigManager:
         )
         self._data = {}
 
-    def set_includeInputSubdirs(self, set_value: bool) -> "DCConfigManager":
+    def set_includeInputSubdirs(self, set_value: bool) -> "CustomDataManager":
         """Set the includeInputSubdirs attribute of the config"""
         self._config.includeInputSubdirs = set_value
         return self
 
-    def set_groupStatVarsByProperty(self, set_value: bool) -> "DCConfigManager":
+    def set_groupStatVarsByProperty(self, set_value: bool) -> "CustomDataManager":
         """Set the groupStatVarsByProperty attribute of the config"""
         self._config.groupStatVarsByProperty = set_value
         return self
@@ -135,7 +135,7 @@ class DCConfigManager:
         source_name: str,
         source_url: Optional[HttpUrl | str] = None,
         override: bool = False,
-    ) -> "DCConfigManager":
+    ) -> "CustomDataManager":
         """Add a provenance to the config
 
         Add a provenance (optionally with a new source) to the sources section of the config
@@ -191,7 +191,7 @@ class DCConfigManager:
         group: Optional[str] = None,
         properties: Optional[Dict[str, str]] = None,
         override: bool = False,
-    ) -> "DCConfigManager":
+    ) -> "CustomDataManager":
         """Add a variable to the config. This only applies to the implicit schema.
 
         This method registers a variable in the config. If there is no variables section
@@ -246,7 +246,7 @@ class DCConfigManager:
         observationProperties: Dict[str, str] = None,
         ignoreColumns: Optional[List[str]] = None,
         override: bool = False,
-    ) -> "DCConfigManager":
+    ) -> "CustomDataManager":
         f"""Add an inputFile to the config and optionally register the data as pandas DataFrame.
 
         This method registers an input file in the config. Optionally it also registers the
@@ -341,7 +341,7 @@ class DCConfigManager:
 
     def add_data(
         self, data: pd.DataFrame, file_name: str, override: bool = False
-    ) -> "DCConfigManager":
+    ) -> "CustomDataManager":
         """Add data to the config
 
         Args:
@@ -433,7 +433,7 @@ class DCConfigManager:
         # export the data
         self.export_data(dir_path)
 
-    def validate_config(self) -> "DCConfigManager":
+    def validate_config(self) -> "CustomDataManager":
         """Validate the config
 
         This method checks the config for any issues and ensuring all the fields and values are valid. It rai
@@ -457,7 +457,7 @@ class DCConfigManager:
         group_statvars = self._config.groupStatVarsByProperty
 
         return (
-            f"<DCConfigManager config: "
+            f"<CustomDataManager config: "
             f"\n{input_files_count} inputFiles, with {dataframes_count} containing data"
             f"\n{sources_count} sources"
             f"\n{variables_count} variables"
