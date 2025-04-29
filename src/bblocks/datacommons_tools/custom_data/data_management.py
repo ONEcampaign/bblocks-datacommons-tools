@@ -134,8 +134,11 @@ class CustomDataManager:
     the config may not be valid. If any exporter method is called, the config will be
     validated and an error will be raised if the config is not valid.
 
-    To export the config and the data, use the export_config_and_data method
-    >>> dc_manager.export_config("path/to/config")
+    To export the config, data, and MCF file, use the export_all method
+    >>> dc_manager.export_all("path/to/folder")
+
+    To export the MCF file, use the export_mcf_file method
+    >>> dc_manager.export_mfc_file("path/to/folder", file_name="custom_nodes.mcf")
 
     To export only the config, use the export_config method
     >>> dc_manager.export_config("path/to/config")
@@ -644,9 +647,10 @@ class CustomDataManager:
         self.export_data(dir_path)
 
         # export the MCF file
-        self.export_mfc_file(
-            dir_path=dir_path, file_name=mcf_file_name, override=override
-        )
+        if len(self._mcf_nodes.nodes) > 0:
+            self.export_mfc_file(
+                dir_path=dir_path, file_name=mcf_file_name, override=override
+            )
 
     def validate_config(self) -> CustomDataManager:
         """Validate the config
