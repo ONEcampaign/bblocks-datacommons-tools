@@ -74,7 +74,7 @@ class MCFNodes(BaseModel):
         self.nodes.append(MCFNode(**block))
         block.clear()
 
-    def load_from_mcf_file(self, file_name: str | PathLike) -> MCFNodes:
+    def load_from_mcf_file(self, file_path: str | PathLike) -> MCFNodes:
         """Parses MCF nodes from a file and populates the collection.
 
         Each node block is expected to start with
@@ -83,10 +83,10 @@ class MCFNodes(BaseModel):
         by a blank line (or EOF).
 
         Args:
-            file_name: The path of the MCF file to read.
+            file_path: The path of the MCF file to read.
         """
 
-        path = Path(file_name)
+        path = Path(file_path)
         current_block: dict[str, str] = {}
 
         with path.open(encoding="utf-8") as file_obj:
