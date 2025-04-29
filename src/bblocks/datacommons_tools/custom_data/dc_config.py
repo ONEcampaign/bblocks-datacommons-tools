@@ -10,9 +10,9 @@ from pydantic import HttpUrl
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.data_files import (
     ObservationProperties,
-    VariablePerColumnFile,
+    ImplicitSchemaFile,
     ColumnMappings,
-    VariablePerRowFile,
+    ExplicitSchemaFile,
 )
 from bblocks.datacommons_tools.custom_data.models.sources import Source
 from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
@@ -275,7 +275,7 @@ class DCConfigManager:
         self._data_override_check(file_name=file_name, override=override)
 
         # add the file to the config
-        self._config.inputFiles[file_name] = VariablePerColumnFile(
+        self._config.inputFiles[file_name] = ImplicitSchemaFile(
             entityType=entityType,
             ignoreColumns=ignoreColumns,
             provenance=provenance,
@@ -327,7 +327,7 @@ class DCConfigManager:
         self._data_override_check(file_name=file_name, override=override)
 
         # add the file to the config
-        self._config.inputFiles[file_name] = VariablePerRowFile(
+        self._config.inputFiles[file_name] = ExplicitSchemaFile(
             ignoreColumns=ignoreColumns,
             provenance=provenance,
             columnMappings=ColumnMappings(**columnMappings),
