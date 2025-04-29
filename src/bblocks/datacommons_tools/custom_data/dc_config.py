@@ -50,7 +50,7 @@ class DCConfigManager:
     >>> )
 
     To add a variable to the config (using the implicit schema), use the add_variable_to_implicit_schema method
-    >>> config_manager.add_variable_with_implicit_schema("StatVar",name="Variable Name",description="Variable Description",group="Group Name")
+    >>> config_manager.add_variable_to_config("StatVar",name="Variable Name",description="Variable Description",group="Group Name")
 
     To add an input file and data to the config, using the implicit (per column) schema,
     use the add_variablePerColumn_input_file method
@@ -179,7 +179,7 @@ class DCConfigManager:
 
         return self
 
-    def add_variable_with_implicit_schema(
+    def add_variable_to_config(
         self,
         statVar: str,
         name: Optional[str] = None,
@@ -189,7 +189,7 @@ class DCConfigManager:
         properties: Optional[Dict[str, str]] = None,
         override: bool = False,
     ) -> "DCConfigManager":
-        """Add a variable to the config
+        """Add a variable to the config. This only applies to the implicit schema.
 
         This method registers a variable in the config. If there is no variables section
         defined in the config, it will create one.
