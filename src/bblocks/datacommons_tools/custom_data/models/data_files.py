@@ -1,11 +1,24 @@
-from typing import Optional, List, Literal
+from enum import StrEnum
+from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class FileType(StrEnum):
+    """Enumeration of the file types for the input files.
+
+    Attributes:
+        STAT_VAR_PER_COLUMN: Variable per column file type.
+        STAT_VAR_PER_ROW: Variable per row file type.
+    """
+
+    STAT_VAR_PER_COLUMN = "variablePerColumn"
+    STAT_VAR_PER_ROW = "variablePerRow"
 
 
 class ObservationProperties(BaseModel):
     """Representation of the ObservationProperties section of the InputFiles section of the config file
-    This is for implicit schema only
+    This is for the implicit schema only.
 
     Attributes:
         unit: Unit of the observation.
@@ -53,47 +66,53 @@ class InputFile(BaseModel):
     """Representation of the InputFiles section of the config file
 
     Attributes:
-        entityType: Type of the entity (implicit schema only).
-        ignoreColumns: List of columns to ignore.
         provenance: Provenance of the data.
-        data_format: Format of the data (variable per column or variable per row).
-            Accepted values are "variablePerColumn" or "variablePerRow". If using explicit
-            schema, this should be "variablePerRow". If using implicit schema, this should
-            be "variablePerColumn" or omitted. This attribute is represented as
-            "format" in the JSON.
-        columnMappings:  If headings in the CSV file does not use the default names,
-             the equivalent names for each column. (explicit schema only).
-        observationProperties: Properties of the observation (implicit schema only).
+        ignoreColumns: List of columns to ignore.
     """
 
-    entityType: Optional[str] = None
-    ignoreColumns: Optional[List[str]] = None
     provenance: str
-    data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = Field(
-        default=None, alias="format"
-    )  # represent the "format" field. Get around the protected name issue
-    columnMappings: Optional[ColumnMappings] = None
-    observationProperties: Optional[ObservationProperties] = None
+    ignoreColumns: Optional[List[str]] = None
+    # Allow since inherited classes will have extra fields
+    model_config = ConfigDict(extra="allow")
 
-    model_config = ConfigDict(extra="forbid")
 
-    @model_validator(mode="after")
-    def validate_schema_choice(self) -> "InputFile":
-        """Validate that only one of implicit or explicit schema is used"""
+class ImplicitSchemaFile(InputFile):
+    """Representation of the ColumnFile section of the config file
+    This is what is known as the implicit schema.
 
-        using_implicit = (
-            self.entityType is not None or self.observationProperties is not None
-        )
-        using_explicit = (
-            self.columnMappings is not None or self.data_format == "variablePerRow"
-        )
+    Attributes:
+        entityType: Type of the entity (e.g., Country, State).
+        observationProperties: Properties of the observation.
+        # Inherited from InputFile
+        provenance: Provenance of the data.
+        ignoreColumns: List of columns to ignore.
+        # Automatically set
+        data_format: Format of the data (variable per column).
+            This attribute is represented as "format" in the JSON.
 
-        if using_implicit and using_explicit:
-            raise ValueError(
-                "Cannot use both implicit and explicit schema fields. Read more about "
-                "implicit and explicit schemas here: https://docs.datacommons.org/"
-                "custom_dc/custom_data.html#step-2-choose-between-implicit-and-"
-                "explicit-schema-definition"
-            )
+    """
 
-        return self
+    entityType: str
+    observationProperties: ObservationProperties
+    data_format: FileType = Field(default="variablePerColumn", alias="format")
+
+
+class ExplicitSchemaFile(InputFile):
+    """Representation of the RowFile section of the config file
+    This is what is known as the explicit schema.
+
+    Attributes:
+
+        columnMappings:  If headings in the CSV file does not use the default names,
+             the equivalent names for each column. (explicit schema only).
+
+        # Inherited from InputFile
+        provenance: Provenance of the data.
+        ignoreColumns: List of columns to ignore.
+        # Automatically set
+        data_format: Format of the data (variable per row).
+            This attribute is represented as "format" in the JSON.
+    """
+
+    columnMappings: ColumnMappings
+    data_format: FileType = Field(default="variablePerRow", alias="format")
