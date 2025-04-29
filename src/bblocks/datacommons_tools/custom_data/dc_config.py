@@ -189,7 +189,7 @@ class DCConfigManager:
         properties: Optional[Dict[str, str]] = None,
         override: bool = False,
     ) -> "DCConfigManager":
-        """Add a variable to the config
+        """Add a variable to the config. This only applies to the implicit schema.
 
         This method registers a variable in the config. If there is no variables section
         defined in the config, it will create one.
