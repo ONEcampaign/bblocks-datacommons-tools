@@ -244,37 +244,6 @@ class CustomDataManager:
             self._mcf_nodes.remove(node.Node)
         self._mcf_nodes.add(node)
 
-    def add_variables_to_mcf_from_csv(
-        self,
-        file_path: str | Path,
-        *,
-        column_to_property_mapping: dict[str, str] = None,
-        csv_options: dict[str, Any] = None,
-        override: bool = False,
-    ) -> CustomDataManager:
-        """
-        Read a CSV containing StatVar nodes and parse them into StatVarMCFNode objects.
-
-        Args:
-            file_path: Path to the CSV file.
-            column_to_property_mapping: Optional map from CSV column names to
-                ``StatVarMCFNode`` attribute names.
-            csv_options: Extra keyword arguments forwarded verbatim to
-                ``pandas.read_csv``.
-            override: If True, overwrite the existing nodes if they exist. Defaults to False.
-        """
-        stat_vars = csv_metadata_to_nodes(
-            file_path=file_path,
-            column_to_property_mapping=column_to_property_mapping,
-            csv_options=csv_options,
-        )
-
-        # add the nodes, making sure to check for duplicates
-        for node in stat_vars.nodes:
-            self._add_starvar_node(node, override=override)
-
-        return self
-
     def add_variable_to_mcf(
         self,
         *,
@@ -366,6 +335,37 @@ class CustomDataManager:
 
         # add the node to the MCF file
         self._add_starvar_node(node, override=override)
+        return self
+
+    def add_variables_to_mcf_from_csv(
+        self,
+        file_path: str | Path,
+        *,
+        column_to_property_mapping: dict[str, str] = None,
+        csv_options: dict[str, Any] = None,
+        override: bool = False,
+    ) -> CustomDataManager:
+        """
+        Read a CSV containing StatVar nodes and parse them into StatVarMCFNode objects.
+
+        Args:
+            file_path: Path to the CSV file.
+            column_to_property_mapping: Optional map from CSV column names to
+                ``StatVarMCFNode`` attribute names.
+            csv_options: Extra keyword arguments forwarded verbatim to
+                ``pandas.read_csv``.
+            override: If True, overwrite the existing nodes if they exist. Defaults to False.
+        """
+        stat_vars = csv_metadata_to_nodes(
+            file_path=file_path,
+            column_to_property_mapping=column_to_property_mapping,
+            csv_options=csv_options,
+        )
+
+        # add the nodes, making sure to check for duplicates
+        for node in stat_vars.nodes:
+            self._add_starvar_node(node, override=override)
+
         return self
 
     def add_variable_to_config(
