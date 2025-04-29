@@ -3,7 +3,7 @@
 from __future__ import annotations
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 import pandas as pd
 from pydantic import HttpUrl
@@ -23,6 +23,7 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
     StatVarMCFNode,
     StatVarGroupMCFNode,
 )
+from bblocks.datacommons_tools.custom_data.schema_tools import csv_metadata_to_nodes
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 
@@ -33,7 +34,7 @@ def _parse_kwargs_into_properties(locals_dict: Dict[str, str | dict]) -> Dict[st
     props = {
         k: v
         for k, v in locals_dict.items()
-        if k not in {"self", "additional_properties"} and v is not None
+        if k not in {"self", "additional_properties", "override"} and v is not None
     }
 
     if "additional_properties" in locals_dict:
@@ -89,6 +90,10 @@ class CustomDataManager:
     >>>    description="Variable Description",
     >>>    ...
     >>>    )
+
+    You can also add variables for export to an MCF file using a CSV file. The CSV file should
+    contain the variables you want to add.
+    >>> dc_manager.add_variables_to_mcf_from_csv(file_path="path/to/file.csv")
 
     To add an input file and data to the config, using the implicit (per column) schema,
     use the add_variablePerColumn_input_file method
@@ -230,6 +235,46 @@ class CustomDataManager:
 
         return self
 
+    def _add_starvar_node(self, node, override: bool):
+        if node.Node in self._mcf_nodes.nodes:
+            if not override:
+                raise ValueError(
+                    f"Node '{node.Node}' already exists. Use override=True to overwrite it."
+                )
+            self._mcf_nodes.remove(node.Node)
+        self._mcf_nodes.add(node)
+
+    def add_variables_to_mcf_from_csv(
+        self,
+        file_path: str | Path,
+        *,
+        column_to_property_mapping: dict[str, str] = None,
+        csv_options: dict[str, Any] = None,
+        override: bool = False,
+    ) -> CustomDataManager:
+        """
+        Read a CSV containing StatVar nodes and parse them into StatVarMCFNode objects.
+
+        Args:
+            file_path: Path to the CSV file.
+            column_to_property_mapping: Optional map from CSV column names to
+                ``StatVarMCFNode`` attribute names.
+            csv_options: Extra keyword arguments forwarded verbatim to
+                ``pandas.read_csv``.
+            override: If True, overwrite the existing nodes if they exist. Defaults to False.
+        """
+        stat_vars = csv_metadata_to_nodes(
+            file_path=file_path,
+            column_to_property_mapping=column_to_property_mapping,
+            csv_options=csv_options,
+        )
+
+        # add the nodes, making sure to check for duplicates
+        for node in stat_vars.nodes:
+            self._add_starvar_node(node, override=override)
+
+        return self
+
     def add_variable_to_mcf(
         self,
         *,
@@ -246,6 +291,7 @@ class CustomDataManager:
         measurementQualifier: Optional[str] = None,
         measurementDenominator: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
+        override: bool = False,
     ):
         """Add a StatVar node for the MCF file
 
@@ -264,6 +310,7 @@ class CustomDataManager:
             measurementDenominator: Measurement denominator of the variable (Optional)
             additional_properties: Additional properties for the variable,
                 passed as a dictionary with the target property as key.(Optional)
+            override: If True, overwrite the existing node if it exists. Defaults to False.
 
         Returns:
             CustomDataManager object
@@ -272,7 +319,11 @@ class CustomDataManager:
         # Transform the passed arguments into a properties dictionary
         props = _parse_kwargs_into_properties(locals())
         # add a new node to the MCF file
-        self._mcf_nodes.add(StatVarMCFNode(**props))
+        node = StatVarMCFNode(**props)
+
+        # add the node to the MCF file
+        self._add_starvar_node(node, override=override)
+
         return self
 
     def add_variable_group_to_mcf(
@@ -285,6 +336,7 @@ class CustomDataManager:
         provenance: Optional[str] = None,
         shortDisplayName: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
+        override: bool = False,
     ) -> CustomDataManager:
         """Add a StatVarGroup node for the MCF file
 
@@ -301,6 +353,7 @@ class CustomDataManager:
             shortDisplayName: Short display name of the variable group (Optional)
             additional_properties: Additional properties for the variable group,
                 passed as a dictionary with the target property as key.(Optional)
+            override: If True, overwrite the existing node if it exists. Defaults to False.
 
         Returns:
             CustomDataManager object
@@ -309,7 +362,10 @@ class CustomDataManager:
         props = _parse_kwargs_into_properties(locals())
 
         # add a new node to the MCF file
-        self._mcf_nodes.add(StatVarGroupMCFNode(**props))
+        node = StatVarGroupMCFNode(**props)
+
+        # add the node to the MCF file
+        self._add_starvar_node(node, override=override)
         return self
 
     def add_variable_to_config(
