@@ -53,7 +53,7 @@ class MCFNode(BaseModel):
         return "\n".join(lines) + "\n\n"
 
 
-class Nodes(BaseModel):
+class MCFNodes(BaseModel):
     """Represents a collection of Nodes.
 
     Attributes:
@@ -74,7 +74,7 @@ class Nodes(BaseModel):
         self.nodes.append(MCFNode(**block))
         block.clear()
 
-    def load_from_mcf_file(self, file_name: str | PathLike) -> Nodes:
+    def load_from_mcf_file(self, file_name: str | PathLike) -> MCFNodes:
         """Parses MCF nodes from a file and populates the collection.
 
         Each node block is expected to start with
@@ -110,7 +110,7 @@ class Nodes(BaseModel):
 
         return self
 
-    def add(self, node: MCFNode) -> Nodes:
+    def add(self, node: MCFNode) -> MCFNodes:
         """Adds a new node to the collection.
 
         Args:
@@ -120,7 +120,7 @@ class Nodes(BaseModel):
 
         return self
 
-    def remove(self, node_id: str) -> Nodes:
+    def remove(self, node_id: str) -> MCFNodes:
         """Removes a node from the collection by its ID.
 
         Args:
@@ -136,7 +136,7 @@ class Nodes(BaseModel):
 
     def export_to_mcf_file(
         self, file_path: str | PathLike, *, overwrite: bool = True
-    ) -> Nodes:
+    ) -> MCFNodes:
         """Exports the MCF nodes to a file.
 
         Args:

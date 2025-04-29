@@ -5,11 +5,11 @@ from typing import Any
 
 import pandas as pd
 
-from bblocks.datacommons_tools.custom_data.models.mcf import Nodes
+from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes
 from bblocks.datacommons_tools.custom_data.models.stat_vars import StatVarMCFNode
 
 
-def _rows_to_stat_var_nodes(data: pd.DataFrame) -> Nodes[StatVarMCFNode]:
+def _rows_to_stat_var_nodes(data: pd.DataFrame) -> MCFNodes[StatVarMCFNode]:
     """Convert a DataFrame into a collection of ``StatVarMCFNode`` objects.
 
     Empty/NA values are removed from each row before constructing the node.
@@ -27,7 +27,7 @@ def _rows_to_stat_var_nodes(data: pd.DataFrame) -> Nodes[StatVarMCFNode]:
         record = {k: v for k, v in record.items() if not pd.isna(v) and v != ""}
         nodes.append(StatVarMCFNode(**record))
 
-    return Nodes(nodes=nodes)
+    return MCFNodes(nodes=nodes)
 
 
 def csv_metadata_to_nodes(
@@ -35,7 +35,7 @@ def csv_metadata_to_nodes(
     *,
     column_to_property_mapping: dict[str, str] = None,
     csv_options: dict[str, Any] = None,
-) -> Nodes[StatVarMCFNode]:
+) -> MCFNodes[StatVarMCFNode]:
     """Read a CSV of StatVar metadata and return the corresponding MCF StatVar nodes.
 
     Args:
