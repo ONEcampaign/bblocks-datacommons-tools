@@ -100,7 +100,7 @@ class DCConfigManager:
     >>> config_manager.export_config("path/to/config")
 
     or get the config as a dictionary using the config_to_dict method
-    >>> config_manager = dc_manager.config_to_dict()
+    >>> config_manager = config_manager.config_to_dict()
 
     To export only the data, use the export_data method
     >>> config_manager.export_data("path/to/data")
