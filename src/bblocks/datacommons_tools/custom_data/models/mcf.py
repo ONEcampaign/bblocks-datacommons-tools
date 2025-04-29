@@ -75,7 +75,7 @@ class Nodes(BaseModel):
         """
 
         def _flush(block: dict[str, str]) -> None:
-            """Convert the current *block* into an :class:`MCFNode` and store it."""
+            """Convert the current block into an `MCFNode` and store it."""
             if not block:
                 return
             if "Node" not in block:
