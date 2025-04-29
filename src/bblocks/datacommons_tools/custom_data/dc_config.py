@@ -2,19 +2,22 @@
 
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Dict, List, Literal
+from typing import Optional, Dict, List
 
 import pandas as pd
 from pydantic import HttpUrl
 
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.data_files import (
-    ColumnMappings,
     ObservationProperties,
-    InputFile,
+    VariablePerColumnFile,
+    ColumnMappings,
+    VariablePerRowFile,
 )
 from bblocks.datacommons_tools.custom_data.models.sources import Source
 from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
+
+DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 
 
 class DCConfigManager:
@@ -26,26 +29,54 @@ class DCConfigManager:
     Usage:
 
     To start instantiate the object with or without an existing config json
-    >>> dc_manager = DCConfigManager()
+    >>> config_manager = DCConfigManager()
     or
     >>> config_manager = DCConfigManager(config_file="path/to/config.json")
 
     To add a provenance to the config, use the add_provenance method
-    >>> config_manager.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name", "https://example.com/source")
+    >>> config_manager.add_provenance(
+    >>>     provenance_name="Provenance Name",
+    >>>     provenance_url="https://example.com/provenance",
+    >>>     source_name="Source Name",
+    >>>     source_url="https://example.com/source"
+    >>> )
+
     This will add a provenance and a source in the config. If the already exists,
     you can add another provenance to the existing source
-    >>> config_manager.add_provenance("Provenance Name", "https://example.com/provenance", "Source Name")
+    >>> config_manager.add_provenance(
+    >>>    provenance_name="Provenance Name",
+    >>>    provenance_url="https://example.com/provenance",
+    >>>    source_name="Source Name"
+    >>> )
 
     To add a variable to the config (using the implicit schema), use the add_variable_to_implicit_schema method
-    >>> config_manager.add_variable_to_implicit_schema("StatVar", name="Variable Name", description="Variable Description", group="Group Name")
+    >>> config_manager.add_variable_with_implicit_schema("StatVar",name="Variable Name",description="Variable Description",group="Group Name")
 
-    To add an input file and data to the config, use the add_input_file method
-    >>> config_manager.add_input_file("input_file.csv", "Provenance Name", data=df)
+    To add an input file and data to the config, using the implicit (per column) schema,
+    use the add_variablePerColumn_input_file method
+    >>> config_manager.add_variablePerColumn_input_file(
+    >>>    file_name= "input_file.csv",
+    >>>    provenance="Provenance Name",
+    >>>    data=df,
+    >>>    entityType="Country",
+    >>>    observationProperties={"unit": "USDollar"},
+    >>>    )
+
+    To add an input file and data to the config, using the explicit (per row) schema,
+    use the add_variablePerRow_input_file method
+    >>> config_manager.add_variablePerRow_input_file(
+    >>>    file_name="input_file.csv",
+    >>>    provenance="Provenance Name",
+    >>>    columnMappings={"entity": "Country", "date": "Year", "value": "Value"},
+    >>>    data=df
+    >>>     )
 
     It isn't a requirement to add the data at the same time as the input file. You can add the data
     later using the add_data method. This is useful when you want to edit the config file
-    without needing the data
-    >>> config_manager.add_input_file("input_file.csv", "Provenance Name")
+    without needing the data. For example, for the variablePerColumn input file:
+    >>> config_manager.add_variablePerColumn_input_file(
+    >>>    file_name="input_file.csv", provenance="Provenance Name"
+    >>> )
 
     To add data to the config, you can use the add_input_file and override the information already
     registered, or you can use the add_data method.
@@ -148,7 +179,7 @@ class DCConfigManager:
 
         return self
 
-    def add_variable_to_implicit_schema(
+    def add_variable_with_implicit_schema(
         self,
         statVar: str,
         name: Optional[str] = None,
@@ -194,28 +225,34 @@ class DCConfigManager:
         )
         return self
 
-    def add_input_file(
+    def _data_override_check(self, file_name: str, override: bool) -> None:
+        """Check if the data already exists and override is not set"""
+        if file_name in self._data:
+            if not override:
+                raise ValueError(
+                    f"Data for file '{file_name}' already exists. Use a different name."
+                )
+
+    def add_variablePerColumn_input_file(
         self,
         file_name: str,
         provenance: str,
         data: Optional[pd.DataFrame] = None,
         entityType: Optional[str] = None,
+        observationProperties: Dict[str, str] = None,
         ignoreColumns: Optional[List[str]] = None,
-        data_format: Optional[Literal["variablePerColumn", "variablePerRow"]] = None,
-        columnMappings: Optional[ColumnMappings] = None,
-        observationProperties: Optional[ObservationProperties] = None,
         override: bool = False,
     ) -> "DCConfigManager":
-        """Add an inputFile to the config and optionally register the data as pandas dataframe
+        f"""Add an inputFile to the config and optionally register the data as pandas DataFrame.
 
         This method registers an input file in the config. Optionally it also registers the
         data that accompanies the input file registered. The registration of the data is made
-        optional in cases where a user wants to edite the config file without the
+        optional in cases where a user wants to edit the config file without the
         accompanying data. The data can be registered later using the add data method.
 
-        This method allows use of the implicit or explicit schema approach. Read more about
+        This method is for the implicit schema approach (variable per column). Read more about
         implicit and explicit schemas here:
-        https://docs.datacommons.org/custom_dc/custom_data.html#step-2-choose-between-implicit-and-explicit-schema-definition
+        {DC_DOCS_URL}#step-2-choose-between-implicit-and-explicit-schema-definition
 
         Args:
             file_name: Name of the file (should be a .csv file)
@@ -224,33 +261,72 @@ class DCConfigManager:
                 to the config file.
             data: Data to register (optional)
             entityType: Type of the entity (optional)
-            ignoreColumns: List of columns to ignore (optional)
-            data_format: Format of the data (optional). Allowed values are
-                [variablePerColumn, variablePerRow]. If using explicit schema, this should
-                be "variablePerRow". If using implicit schema, this should be
-                "variablePerColumn" or omitted.
-            columnMappings: Column mappings (optional). Allowed values are [variable,
-                entity, date, value, unit, scalingFactor, measurementMethod, observationPeriod]
-            observationProperties: Observation properties (optional). Allowed values
+            observationProperties: Observation properties. Allowed keys
                 are [unit, observationPeriod, scalingFactor, measurementMethod]
+            ignoreColumns: List of columns to ignore (optional)
             override: If True, overwrite the existing file if it exists. Defaults to False.
         """
 
         # check if the file already exists
-        if file_name in self._config.inputFiles:
-            if not override:
-                raise ValueError(
-                    f"File '{file_name}' already exists. Use override=True to overwrite it."
-                )
+        self._data_override_check(file_name=file_name, override=override)
 
         # add the file to the config
-        self._config.inputFiles[file_name] = InputFile(
+        self._config.inputFiles[file_name] = VariablePerColumnFile(
             entityType=entityType,
             ignoreColumns=ignoreColumns,
             provenance=provenance,
-            format=data_format,
-            columnMappings=columnMappings,
-            observationProperties=observationProperties,
+            observationProperties=ObservationProperties(**observationProperties),
+        )
+
+        # if data is provided, register it
+        if data is not None:
+            self._data[file_name] = data
+
+        return self
+
+    def add_variablePerRow_input_file(
+        self,
+        file_name: str,
+        provenance: str,
+        data: Optional[pd.DataFrame] = None,
+        columnMappings: Dict[str, str] = None,
+        ignoreColumns: Optional[List[str]] = None,
+        override: bool = False,
+    ):
+        f"""Add an inputFile to the config and optionally register the data as pandas DataFrame.
+
+        This method registers an input file in the config. Optionally it also registers the
+        data that accompanies the input file registered. The registration of the data is made
+        optional in cases where a user wants to edit the config file without the
+        accompanying data. The data can be registered later using the add data method.
+
+        This method is for the explicit schema approach (variable per row). Read more about
+        implicit and explicit schemas here:
+        {DC_DOCS_URL}#step-2-choose-between-implicit-and-explicit-schema-definition
+
+
+        Args:
+            file_name: Name of the file (should be a .csv file)
+            provenance: Provenance of the data. This should be the name of the provenance
+                in the sources section of the config file. Use add_provenance to add a provenance
+                to the config file.
+            data: Data to register (optional)
+            columnMappings: Column mappings. Match the headings in the CSV file to the allowed
+                properties. Allowed keys are [entity, date, value, unit,
+                scalingFactor, measurementMethod, observationPeriod].
+            ignoreColumns: List of columns to ignore (optional)
+            override: If True, overwrite the existing file if it exists. Defaults to False.
+
+        """
+
+        # check if the file already exists
+        self._data_override_check(file_name=file_name, override=override)
+
+        # add the file to the config
+        self._config.inputFiles[file_name] = VariablePerRowFile(
+            ignoreColumns=ignoreColumns,
+            provenance=provenance,
+            columnMappings=ColumnMappings(**columnMappings),
         )
 
         # if data is provided, register it
@@ -268,6 +344,7 @@ class DCConfigManager:
             data: Data to register
             file_name: Name of the file (should be a .csv file and have been
                 registered in the config file)
+            override: If True, overwrite the existing data if it exists.
         """
 
         # check if the file name has been registered in the config file
@@ -278,11 +355,7 @@ class DCConfigManager:
             )
 
         # check if the file already exists and override is not set
-        if file_name in self._data:
-            if not override:
-                raise ValueError(
-                    f"File '{file_name}' already exists. Use a different name."
-                )
+        self._data_override_check(file_name=file_name, override=override)
 
         # add the data to the config
         self._data[file_name] = data
