@@ -27,6 +27,22 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 
 
+def _parse_kwargs_into_properties(locals_dict: Dict[str, str | dict]) -> Dict[str, str]:
+    """Parse a dictionary of keyword arguments into a dictionary of properties"""
+
+    props = {
+        k: v
+        for k, v in locals_dict.items()
+        if k not in {"self", "additional_properties"} and v is not None
+    }
+
+    if "additional_properties" in locals_dict:
+        # add the additional properties to the props dictionary
+        props.update(locals_dict["additional_properties"])
+
+    return props
+
+
 class CustomDataManager:
     """Class to handle the config json, data, and MCF files for Custom Data Commons
 
@@ -254,16 +270,7 @@ class CustomDataManager:
         """
 
         # Transform the passed arguments into a properties dictionary
-        props = {
-            k: v
-            for k, v in locals().items()
-            if k not in {"self", "additional_properties"} and v is not None
-        }
-
-        if additional_properties:
-            # add the additional properties to the props dictionary
-            props.update(additional_properties)
-
+        props = _parse_kwargs_into_properties(locals())
         # add a new node to the MCF file
         self._mcf_nodes.add(StatVarMCFNode(**props))
         return self
@@ -299,15 +306,7 @@ class CustomDataManager:
             CustomDataManager object
         """
         # Transform the passed arguments into a properties dictionary
-        props = {
-            k: v
-            for k, v in locals().items()
-            if k not in {"self", "additional_properties"} and v is not None
-        }
-
-        if additional_properties:
-            # add the additional properties to the props dictionary
-            props.update(additional_properties)
+        props = _parse_kwargs_into_properties(locals())
 
         # add a new node to the MCF file
         self._mcf_nodes.add(StatVarGroupMCFNode(**props))
