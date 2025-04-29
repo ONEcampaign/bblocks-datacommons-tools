@@ -1,4 +1,5 @@
-from typing import Optional
+from os import PathLike
+from typing import Optional, List, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -46,4 +47,27 @@ class MCFNode(BaseModel):
         lines = [f"Node: {data.pop('Node')}"]
         lines.extend(f"{k}: {v}" for k, v in sorted(data.items()))
 
-        return "\n".join(lines) + "\n"
+        return "\n".join(lines) + "\n\n"
+
+
+class Nodes(BaseModel):
+    """Represents a collection of Nodes.
+
+    Attributes:
+        nodes: A list of Node instances.
+    """
+
+    nodes: List[MCFNode]
+
+    def export(self, file_name: str | PathLike, *, overwrite: bool = True) -> None:
+        """Exports the MCF nodes to a file.
+
+        Args:
+            file_name: The path of the file to which to export.
+            overwrite: If True, overwrite the file if it exists. If False, append to the file.
+        """
+        mode = "w" if overwrite else "a"
+
+        with open(file_name, mode) as f:
+            for node in self.nodes:
+                f.write(node.mcf)
