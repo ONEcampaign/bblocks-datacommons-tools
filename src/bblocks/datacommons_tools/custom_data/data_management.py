@@ -65,6 +65,15 @@ class CustomDataManager:
     >>>     group="Group Name"
     >>>    )
 
+    To add a variable for export to an MCF file (using the explicit schema), use the
+    add_variable_to_mcf method
+    >>> dc_manager.add_variable_to_mcf(
+    >>>    Node="StatVar",
+    >>>    name="Variable Name",
+    >>>    description="Variable Description",
+    >>>    ...
+    >>>    )
+
     To add an input file and data to the config, using the implicit (per column) schema,
     use the add_variablePerColumn_input_file method
     >>> dc_manager.add_implicit_schema_file(
