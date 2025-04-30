@@ -15,7 +15,7 @@ from bblocks.datacommons_tools.custom_data.models.data_files import (
     ImplicitSchemaFile,
     ColumnMappings,
     ExplicitSchemaFile,
-    ensure_mcf_extension,
+    MCFFileName,
 )
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes
 from bblocks.datacommons_tools.custom_data.models.sources import Source
@@ -50,12 +50,21 @@ def _parse_kwargs_into_properties(locals_dict: Dict[str, str | dict]) -> Dict[st
     return props
 
 
+def _validate_mcf_file_name(file_name: str | MCFFileName) -> str:
+    name = (
+        MCFFileName(file_name=file_name).file_name
+        if isinstance(file_name, str)
+        else file_name
+    )
+    return name
+
+
 class CustomDataManager:
     """Class to handle the config json, data, and MCF files for Custom Data Commons
 
     Args:
         config_file: Path to the config json file. If not provided, a new config objet will be created.
-        mcf_file: Path to the MCF file. If not provided, a new MCFNodes object will be created.
+        mcf_files: Path to one or more MCF files. If not provided, a new MCFNodes object will be created.
 
     Usage:
 
@@ -159,13 +168,13 @@ class CustomDataManager:
     def __init__(
         self,
         config_file: Optional[str | PathLike[str]] = None,
-        mcf_file: Optional[str | PathLike[str]] = None,
+        mcf_files: Optional[str | list[str] | list[PathLike[str]]] = None,
     ):
         """
         Initialize the CustomDataManager object
         Args:
             config_file: Path to the config json file. If not provided, a new config object will be created.
-            mcf_file: Path to the MCF file. If not provided, a new MCFNodes object will be created.
+            mcf_files: Path to one or more MFC files. If not provided, a new MCFNodes object will be created.
         """
 
         self._config = (
@@ -174,12 +183,17 @@ class CustomDataManager:
             else Config(inputFiles={}, sources={})
         )
 
-        if mcf_file:
-            # Extract name from the file path
-            file_name = Path(mcf_file).name
-            self._mcf_nodes: dict[str, MCFNodes] = {
-                file_name: MCFNodes().load_from_mcf_file(file_path=mcf_file)
-            }
+        if mcf_files:
+            # If mcf_files is a string, convert it to a list
+            if isinstance(mcf_files, str) or isinstance(mcf_files, PathLike):
+                mcf_files = [mcf_files]
+
+                for mcf_file in mcf_files:
+                    # Extract name from the file path
+                    file_name = Path(mcf_file).name
+                    self._mcf_nodes: dict[str, MCFNodes] = {
+                        file_name: MCFNodes().load_from_mcf_file(file_path=mcf_file)
+                    }
         else:
             self._mcf_nodes: dict[str, MCFNodes] = {
                 DEFAULT_STARVAR_MCF_NAME: MCFNodes()
@@ -268,7 +282,7 @@ class CustomDataManager:
         measurementDenominator: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
         override: bool = False,
-        mcf_file_name: str = DEFAULT_STARVAR_MCF_NAME,
+        mcf_file_name: MCFFileName | str = DEFAULT_STARVAR_MCF_NAME,
     ):
         """Add a StatVar node for the MCF file
 
@@ -288,7 +302,7 @@ class CustomDataManager:
             additional_properties: Additional properties for the variable,
                 passed as a dictionary with the target property as key.(Optional)
             override: If True, overwrite the existing node if it exists. Defaults to False.
-            mcf_file_name: Name of the MCF file. Defaults to "custom_nodes.mcf".
+            mcf_file_name: Name of the MCF file (must end in .mcf). Defaults to "custom_nodes.mcf".
 
         Returns:
             CustomDataManager object
@@ -300,9 +314,8 @@ class CustomDataManager:
         node = StatVarMCFNode(**props)
 
         # add the node to the MCF file
-        self._mcf_nodes.setdefault(ensure_mcf_extension(mcf_file_name), MCFNodes()).add(
-            node, override=override
-        )
+        name = _validate_mcf_file_name(mcf_file_name)
+        self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
 
         return self
 
@@ -317,7 +330,7 @@ class CustomDataManager:
         shortDisplayName: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
         override: bool = False,
-        mcf_file_name: str = DEFAULT_GROUP_NAME,
+        mcf_file_name: MCFFileName | str = DEFAULT_GROUP_NAME,
     ) -> CustomDataManager:
         """Add a StatVarGroup node for the MCF file
 
@@ -335,7 +348,7 @@ class CustomDataManager:
             additional_properties: Additional properties for the variable group,
                 passed as a dictionary with the target property as key.(Optional)
             override: If True, overwrite the existing node if it exists. Defaults to False.
-            mcf_file_name: Name of the MCF file. Defaults to "custom_groups.mcf".
+            mcf_file_name: Name of the MCF file (must end in .mcf). Defaults to "custom_groups.mcf".
 
         Returns:
             CustomDataManager object
@@ -347,9 +360,8 @@ class CustomDataManager:
         node = StatVarGroupMCFNode(**props)
 
         # add the node to the MCF file
-        self._mcf_nodes.setdefault(ensure_mcf_extension(mcf_file_name), MCFNodes()).add(
-            node, override=override
-        )
+        name = _validate_mcf_file_name(mcf_file_name)
+        self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
         return self
 
     def add_variables_to_mcf_from_csv(
@@ -379,11 +391,11 @@ class CustomDataManager:
             csv_options=csv_options,
         )
 
+        # validate the file name
+        name = _validate_mcf_file_name(mcf_file_name)
         # add the nodes
         for node in stat_vars.nodes:
-            self._mcf_nodes.setdefault(
-                ensure_mcf_extension(mcf_file_name), MCFNodes()
-            ).add(node, override=override)
+            self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
 
         return self
 
@@ -601,10 +613,11 @@ class CustomDataManager:
 
         Args:
             dir_path: Path to the directory where the MCF file will be exported.
-            mcf_file_name: Name of the MCF file. Defaults to "custom_nodes.mcf".
+            mcf_file_name: Name of the MCF file (must end in .mcf). Defaults to "custom_nodes.mcf".
             override: If True, overwrite the file if it exists. Defaults to False.
         """
-        mcf_file_name = ensure_mcf_extension(mcf_file_name)
+        # validate the file name
+        mcf_file_name = _validate_mcf_file_name(mcf_file_name)
 
         # export the MCF file
         output_path = Path(dir_path) / mcf_file_name
@@ -661,8 +674,8 @@ class CustomDataManager:
         Args:
             dir_path: Path to the directory where the config and data will be exported.
             override: If True, overwrite the files if they exist. Defaults to False.
-            mcf_file_names: Name of the MCF file. Defaults to None, which means
-                no MCF file will be exported.
+            mcf_file_names: Name of the MCF file(s) to export (must end in .mcf).
+                Defaults to None, which means no MCF file will be exported.
         """
 
         # export the config

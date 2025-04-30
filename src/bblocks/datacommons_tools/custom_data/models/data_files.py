@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, constr
 
 
 class FileType(StrEnum):
@@ -16,12 +16,8 @@ class FileType(StrEnum):
     STAT_VAR_PER_ROW = "variablePerRow"
 
 
-def ensure_mcf_extension(name: str) -> str:
-    if not isinstance(name, str):
-        raise TypeError("fileName must be a string")
-    if not name.endswith(".mcf"):
-        name += ".mcf"
-    return name
+class MCFFileName(BaseModel):
+    file_name: constr(strip_whitespace=True, pattern=r".*\.mcf$")
 
 
 class ObservationProperties(BaseModel):
