@@ -1,6 +1,7 @@
 """Module to work with Data Commons CustomDataManager"""
 
 from __future__ import annotations
+
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Dict, List, Any
@@ -238,15 +239,6 @@ class CustomDataManager:
 
         return self
 
-    def _add_starvar_node(self, node, override: bool):
-        if node.Node in self._mcf_nodes.nodes:
-            if not override:
-                raise ValueError(
-                    f"Node '{node.Node}' already exists. Use override=True to overwrite it."
-                )
-            self._mcf_nodes.remove(node.Node)
-        self._mcf_nodes.add(node)
-
     def add_variable_to_mcf(
         self,
         *,
@@ -337,7 +329,7 @@ class CustomDataManager:
         node = StatVarGroupMCFNode(**props)
 
         # add the node to the MCF file
-        self._add_starvar_node(node, override=override)
+        self._mcf_nodes.add(node, override=override)
         return self
 
     def add_variables_to_mcf_from_csv(
@@ -365,9 +357,9 @@ class CustomDataManager:
             csv_options=csv_options,
         )
 
-        # add the nodes, making sure to check for duplicates
+        # add the nodes
         for node in stat_vars.nodes:
-            self._add_starvar_node(node, override=override)
+            self._mcf_nodes.add(node, override=override)
 
         return self
 
