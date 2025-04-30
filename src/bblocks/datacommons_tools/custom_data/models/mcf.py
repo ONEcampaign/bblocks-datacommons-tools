@@ -4,7 +4,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from bblocks.datacommons_tools.custom_data.models.common import QuotedStr
 
@@ -61,6 +61,21 @@ class MCFNodes(BaseModel):
     """
 
     nodes: List[MCFNode] = Field(default_factory=list)
+    _pos: dict[str, int] = PrivateAttr(default_factory=dict)
+
+    def _reindex(self) -> None:
+        """If needed, rebuild the index of nodes."""
+        self._pos = {n.Node: i for i, n in enumerate(self.nodes)}
+
+    def model_post_init(self, __context) -> None:
+        self._reindex()
+
+    def _expect_present(self, node_id: str) -> int:
+        """Try to find the index of a node by its ID."""
+        try:
+            return self._pos[node_id]
+        except KeyError:
+            raise ValueError(f"Node '{node_id}' not found.") from None
 
     def _flush(self, block: dict[str, str]) -> None:
         """Convert the current block into an `MCFNode` and store it."""
@@ -71,10 +86,10 @@ class MCFNodes(BaseModel):
                 f"Missing mandatory 'Node:' line in block starting with "
                 f"{next(iter(block.items()))!r}"
             )
-        self.nodes.append(MCFNode(**block))
+        self.add(MCFNode(**block))
         block.clear()
 
-    def load_from_mcf_file(self, file_name: str | PathLike) -> MCFNodes:
+    def load_from_mcf_file(self, file_path: str | PathLike) -> MCFNodes:
         """Parses MCF nodes from a file and populates the collection.
 
         Each node block is expected to start with
@@ -83,10 +98,10 @@ class MCFNodes(BaseModel):
         by a blank line (or EOF).
 
         Args:
-            file_name: The path of the MCF file to read.
+            file_path: The path of the MCF file to read.
         """
 
-        path = Path(file_name)
+        path = Path(file_path)
         current_block: dict[str, str] = {}
 
         with path.open(encoding="utf-8") as file_obj:
@@ -110,13 +125,25 @@ class MCFNodes(BaseModel):
 
         return self
 
-    def add(self, node: MCFNode) -> MCFNodes:
+    def add(self, node: MCFNode, override: bool = False) -> MCFNodes:
         """Adds a new node to the collection.
 
         Args:
             node: The MCFNode instance to add.
+            override: If True, overwrite the existing node with the same ID.
+                If False, raise an error if a node with the same ID already exists.
         """
-        self.nodes.append(node)
+        idx = self._pos.get(node.Node)
+
+        if idx is not None:
+            if not override:
+                raise ValueError(
+                    f"Node '{node.Node}' already exists; pass override=True to replace it."
+                )
+            self.nodes[idx] = node
+        else:
+            self._pos[node.Node] = len(self.nodes)
+            self.nodes.append(node)
 
         return self
 
@@ -126,24 +153,27 @@ class MCFNodes(BaseModel):
         Args:
             node_id: The ID of the node to remove.
         """
-        initial_len = len(self.nodes)
-        self.nodes = [node for node in self.nodes if node.Node != node_id]
+        idx = self._expect_present(node_id)
+        self.nodes.pop(idx)
+        self._pos.pop(node_id)
 
-        if len(self.nodes) == initial_len:
-            raise ValueError(f"Node with ID {node_id} not found in the collection.")
+        # Update positions of all nodes after the removed node
+        for id_, pos in list(self._pos.items()):
+            if pos > idx:
+                self._pos[id_] = pos - 1
 
         return self
 
     def export_to_mcf_file(
-        self, file_path: str | PathLike, *, overwrite: bool = True
+        self, file_path: str | PathLike, *, override: bool = True
     ) -> MCFNodes:
         """Exports the MCF nodes to a file.
 
         Args:
             file_path: The path of the file to which to export.
-            overwrite: If True, overwrite the file if it exists. If False, append to the file.
+            override: If True, overwrite the file if it exists. If False, append to the file.
         """
-        mode = "w" if overwrite else "a"
+        mode = "w" if override else "a"
 
         with open(file_path, mode) as f:
             for node in self.nodes:
