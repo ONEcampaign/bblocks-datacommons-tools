@@ -317,7 +317,7 @@ class CustomDataManager:
         shortDisplayName: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
         override: bool = False,
-        mcf_file_name: str = DEFAULT_STARVAR_MCF_NAME,
+        mcf_file_name: str = DEFAULT_GROUP_NAME,
     ) -> CustomDataManager:
         """Add a StatVarGroup node for the MCF file
 
@@ -683,7 +683,7 @@ class CustomDataManager:
     def validate_config(self) -> CustomDataManager:
         """Validate the config
 
-        This method checks the config for any issues and ensuring all the fields and values are valid. It rai
+        This method checks the config for any issues and ensuring all the fields and values are valid. It raises
         an error if there are any issues with the config.
 
         Raises:
