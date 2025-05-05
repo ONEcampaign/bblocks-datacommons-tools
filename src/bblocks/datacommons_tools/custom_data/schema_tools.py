@@ -35,6 +35,7 @@ def csv_metadata_to_nodes(
     *,
     column_to_property_mapping: dict[str, str] = None,
     csv_options: dict[str, Any] = None,
+    ignore_columns: list[str] = None,
 ) -> MCFNodes[StatVarMCFNode]:
     """Read a CSV of StatVar metadata and return the corresponding MCF StatVar nodes.
 
@@ -44,6 +45,7 @@ def csv_metadata_to_nodes(
             ``StatVarMCFNode`` attribute names.
         csv_options: Extra keyword arguments forwarded verbatim to
             ``pandas.read_csv``.
+        ignore_columns: Optional list of columns to ignore when reading the CSV.
 
     Returns:
         A ``Nodes`` container populated with ``StatVarMCFNode`` objects.
@@ -57,6 +59,7 @@ def csv_metadata_to_nodes(
 
     return (
         pd.read_csv(file_path, **csv_options)
+        .drop(columns=ignore_columns)
         .rename(columns=column_to_property_mapping)
         .pipe(_rows_to_stat_var_nodes)
     )
