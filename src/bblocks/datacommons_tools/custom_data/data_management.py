@@ -392,6 +392,7 @@ class CustomDataManager:
             file_path=csv_file_path,
             column_to_property_mapping=column_to_property_mapping,
             csv_options=csv_options,
+            ignore_columns=ignore_columns,
         )
 
         # validate the file name
