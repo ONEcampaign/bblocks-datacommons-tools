@@ -38,7 +38,8 @@ def _parse_kwargs_into_properties(locals_dict: Dict[str, str | dict]) -> Dict[st
     props = {
         k: v
         for k, v in locals_dict.items()
-        if k not in {"self", "additional_properties", "override"} and v is not None
+        if k not in {"self", "additional_properties", "override", "mcf_file_name"}
+        and v is not None
     }
 
     if "additional_properties" in locals_dict:
@@ -460,8 +461,8 @@ class CustomDataManager:
         self,
         file_name: str,
         provenance: str,
+        entityType: str,
         data: Optional[pd.DataFrame] = None,
-        entityType: Optional[str] = None,
         observationProperties: Dict[str, str] = None,
         ignoreColumns: Optional[List[str]] = None,
         override: bool = False,
@@ -489,6 +490,8 @@ class CustomDataManager:
             ignoreColumns: List of columns to ignore (optional)
             override: If True, overwrite the existing file if it exists. Defaults to False.
         """
+        if observationProperties is None:
+            observationProperties = {}
 
         # check if the file already exists
         self._data_override_check(file_name=file_name, override=override)
@@ -603,7 +606,9 @@ class CustomDataManager:
         # export the config to a JSON file
         output_path = Path(dir_path) / "config.json"
         with output_path.open("w") as f:
-            f.write(self._config.model_dump_json(indent=4, exclude_none=True))
+            f.write(
+                self._config.model_dump_json(indent=4, exclude_none=True, by_alias=True)
+            )
 
     def export_mfc_file(
         self,
