@@ -1,0 +1,7 @@
+Node: var/one
+description: "Test var"
+memberOf: one/g/group1
+name: "Test Var"
+statType: dcid:measuredValue
+typeOf: dcid:StatisticalVariable
+
