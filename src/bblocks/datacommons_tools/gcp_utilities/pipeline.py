@@ -20,19 +20,16 @@ from bblocks.datacommons_tools.gcp_utilities.settings import KGSettings
 from bblocks.datacommons_tools.gcp_utilities.storage import upload_directory_to_gcs
 
 
-def upload_to_cloud_storage(
-    credentials: dict, settings: KGSettings, directory: Path | None = None
-):
+def upload_to_cloud_storage(settings: KGSettings, directory: Path | None = None):
     """Upload data to Google Cloud Storage.
 
     Args:
-        credentials (dict): The credentials for Google Cloud Storage.
         settings (KGSettings): The settings for the Knowledge Graph.
         directory (Path | None): The local directory to upload. If None, uses the default path.
 
     """
 
-    gcs_client = get_gcs_client(credentials=credentials)
+    gcs_client = get_gcs_client(credentials=settings.gcp_credentials)
     bucket = gcs_client.get_bucket(settings.gcs_bucket_name)
 
     upload_directory_to_gcs(
@@ -42,28 +39,26 @@ def upload_to_cloud_storage(
     )
 
 
-def run_data_load(credentials: dict, settings: KGSettings, timeout: int = 6000):
+def run_data_load(settings: KGSettings, timeout: int = 6000):
     """Run the data load job.
 
     Args:
-        credentials (dict): The credentials for Google Cloud Storage.
         settings (KGSettings): The settings for the Knowledge Graph.
         timeout (int): The timeout for the job. Default is 6000 seconds.
     """
-    jobs_client = get_jobs_client(credentials=credentials)
+    jobs_client = get_jobs_client(credentials=settings.gcp_credentials)
     run_data_load_job(settings=settings, client=jobs_client, timeout=timeout)
 
 
-def redeploy_service(credentials: dict, settings: KGSettings, timeout: int = 600):
+def redeploy_service(settings: KGSettings, timeout: int = 600):
     """Redeploy the Data Commons service.
 
     Args:
-        credentials (dict): The credentials for Google Cloud Storage.
         settings (KGSettings): The settings for the Knowledge Graph.
         timeout (int): The timeout for the service. Default is 600 seconds.
 
     """
-    services_client = get_services_client(credentials=credentials)
+    services_client = get_services_client(credentials=settings.gcp_credentials)
     redeploy_cloud_run_service(
         settings=settings, client=services_client, timeout=timeout
     )

@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Literal, overload
 
-from pydantic import Field
+from pydantic import Field, Json
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEFAULT_IMAGE = "gcr.io/datcom-ci/datacommons-services:latest"
@@ -17,6 +17,8 @@ class KGSettings(BaseSettings):
 
     local_path: Path = Field(alias="LOCAL_PATH")
     gcp_project_id: str = Field(alias="GCP_PROJECT_ID")
+    gcp_credentials: Json[dict] = Field(alias="GCP_CREDENTIALS")
+
     # cloud storage
     gcs_bucket_name: str = Field(alias="GCS_BUCKET_NAME")
     gcs_input_folder_path: str = Field(alias="GCS_INPUT_FOLDER_PATH")
