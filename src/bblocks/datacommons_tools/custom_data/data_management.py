@@ -371,6 +371,7 @@ class CustomDataManager:
         mcf_file_name: Optional[str] = DEFAULT_STARVAR_MCF_NAME,
         column_to_property_mapping: dict[str, str] = None,
         csv_options: dict[str, Any] = None,
+        ignore_columns: Optional[List[str]] = None,
         override: bool = False,
     ) -> CustomDataManager:
         """
@@ -383,6 +384,7 @@ class CustomDataManager:
                 ``StatVarMCFNode`` attribute names.
             csv_options: Extra keyword arguments forwarded verbatim to
                 ``pandas.read_csv``.
+            ignore_columns: List of columns to ignore in the CSV file.
             override: If True, overwrite the existing nodes if they exist. Defaults to False.
         """
         stat_vars = csv_metadata_to_nodes(
