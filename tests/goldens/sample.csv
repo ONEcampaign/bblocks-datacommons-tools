@@ -1,0 +1,3 @@
+Node,name,typeOf,dcid,description
+foo,FooVar,dcid:StatisticalVariable,dcid:foo,"A foo var"
+bar,BarVar,dcid:StatisticalVariable,dcid:bar,""

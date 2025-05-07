@@ -57,6 +57,9 @@ def csv_metadata_to_nodes(
     if csv_options is None:
         csv_options = {}
 
+    if ignore_columns is None:
+        ignore_columns = []
+
     return (
         pd.read_csv(file_path, **csv_options)
         .drop(columns=ignore_columns)

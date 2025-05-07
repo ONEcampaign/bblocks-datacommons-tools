@@ -1,0 +1,26 @@
+{
+    "includeInputSubdirs": true,
+    "groupStatVarsByProperty": false,
+    "inputFiles": {
+        "a.csv": {
+            "provenance": "provA",
+            "entityType": "Country",
+            "observationProperties": { "unit": "USDollar" },
+            "format": "variablePerColumn"
+        },
+        "b.csv": {
+            "provenance": "provB",
+            "columnMappings": { "entity": "Country", "date": "Year", "value": "Val" },
+            "format": "variablePerRow"
+        }
+    },
+    "variables": {
+        "v1": { "name": "Var One" }
+    },
+    "sources": {
+        "S1": {
+            "url": "http://source1/",
+            "provenances": { "provA": "http://prova/", "provB": "http://provb/" }
+        }
+    }
+}

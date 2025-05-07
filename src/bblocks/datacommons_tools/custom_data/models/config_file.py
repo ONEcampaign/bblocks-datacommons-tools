@@ -1,8 +1,11 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Annotated
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator, Field
 
-from bblocks.datacommons_tools.custom_data.models.data_files import InputFile
+from bblocks.datacommons_tools.custom_data.models.data_files import (
+    ImplicitSchemaFile,
+    ExplicitSchemaFile,
+)
 from bblocks.datacommons_tools.custom_data.models.sources import Source
 from bblocks.datacommons_tools.custom_data.models.stat_vars import Variable
 
@@ -20,7 +23,12 @@ class Config(BaseModel):
 
     includeInputSubdirs: Optional[bool] = None
     groupStatVarsByProperty: Optional[bool] = None
-    inputFiles: Dict[str, InputFile]
+    inputFiles: Dict[
+        str,
+        Annotated[
+            ImplicitSchemaFile | ExplicitSchemaFile, Field(discriminator="data_format")
+        ],
+    ]
     variables: Optional[Dict[str, Variable]] = None  # optional section
     sources: Dict[str, Source]
 

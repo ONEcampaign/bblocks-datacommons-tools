@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, constr
 
@@ -78,6 +78,7 @@ class InputFile(BaseModel):
     ignoreColumns: Optional[List[str]] = None
     # Allow since inherited classes will have extra fields
     model_config = ConfigDict(extra="allow")
+    data_format: FileType = Field(..., alias="format")
 
 
 class ImplicitSchemaFile(InputFile):
@@ -98,7 +99,9 @@ class ImplicitSchemaFile(InputFile):
 
     entityType: str
     observationProperties: ObservationProperties
-    data_format: FileType = Field(default="variablePerColumn", alias="format")
+    data_format: Literal["variablePerColumn"] = Field(
+        default="variablePerColumn", alias="format"
+    )
 
 
 class ExplicitSchemaFile(InputFile):
@@ -119,4 +122,6 @@ class ExplicitSchemaFile(InputFile):
     """
 
     columnMappings: ColumnMappings
-    data_format: FileType = Field(default="variablePerRow", alias="format")
+    data_format: Literal["variablePerRow"] = Field(
+        default="variablePerRow", alias="format"
+    )
