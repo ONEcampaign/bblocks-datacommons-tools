@@ -1,21 +1,28 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 
-from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes
-from bblocks.datacommons_tools.custom_data.models.stat_vars import StatVarMCFNode
+from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes, MCFNode
+from bblocks.datacommons_tools.custom_data.models.stat_vars import (
+    StatVarMCFNode,
+    StatVarGroupMCFNode,
+)
 
 
-def _rows_to_stat_var_nodes(data: pd.DataFrame) -> MCFNodes[StatVarMCFNode]:
+def _rows_to_stat_var_nodes(
+    data: pd.DataFrame,
+    node_type: Literal["Node", "StatVar", "StatVarGroup"] = "StatVar",
+) -> MCFNodes[StatVarMCFNode]:
     """Convert a DataFrame into a collection of ``StatVarMCFNode`` objects.
 
     Empty/NA values are removed from each row before constructing the node.
 
     Args:
         data: A pandas ``DataFrame`` where every row describes a StatVar.
+        node_type: The type of node to create. Default is "StatVar".
 
     Returns:
         A ``Nodes`` container with one ``StatVarMCFNode`` per row.
@@ -23,9 +30,16 @@ def _rows_to_stat_var_nodes(data: pd.DataFrame) -> MCFNodes[StatVarMCFNode]:
 
     records = data.to_dict(orient="records")
     nodes = []
+
+    constructor = {
+        "Node": MCFNode,
+        "StatVar": StatVarMCFNode,
+        "StatVarGroup": StatVarGroupMCFNode,
+    }
+
     for record in records:
         record = {k: v for k, v in record.items() if not pd.isna(v) and v != ""}
-        nodes.append(StatVarMCFNode(**record))
+        nodes.append(constructor[node_type](**record))
 
     return MCFNodes(nodes=nodes)
 
@@ -33,6 +47,7 @@ def _rows_to_stat_var_nodes(data: pd.DataFrame) -> MCFNodes[StatVarMCFNode]:
 def csv_metadata_to_nodes(
     file_path: str | Path,
     *,
+    node_type: Literal["Node", "StatVar", "StatVarGroup"] = "StatVar",
     column_to_property_mapping: dict[str, str] = None,
     csv_options: dict[str, Any] = None,
     ignore_columns: list[str] = None,
@@ -41,6 +56,7 @@ def csv_metadata_to_nodes(
 
     Args:
         file_path: Path to the CSV file.
+        node_type: The type of node to create. Default is "StatVar".
         column_to_property_mapping: Optional map from CSV column names to
             ``StatVarMCFNode`` attribute names.
         csv_options: Extra keyword arguments forwarded verbatim to
@@ -64,5 +80,5 @@ def csv_metadata_to_nodes(
         pd.read_csv(file_path, **csv_options)
         .drop(columns=ignore_columns)
         .rename(columns=column_to_property_mapping)
-        .pipe(_rows_to_stat_var_nodes)
+        .pipe(_rows_to_stat_var_nodes, node_type=node_type)
     )
