@@ -3,6 +3,7 @@ Module for Knowledge Graph pipeline settings.
 """
 
 import json
+from os import PathLike
 from pathlib import Path
 from typing import Literal, overload
 
@@ -13,7 +14,23 @@ _DEFAULT_IMAGE = "gcr.io/datcom-ci/datacommons-services:latest"
 
 
 class KGSettings(BaseSettings):
-    """Configuration constants for the project."""
+    """Configuration constants for the project.
+
+    Attributes:
+        local_path: Path to the local directory that will be exported.
+        gcp_project_id: GCP project ID.
+        gcp_credentials: GCP credentials in JSON format.
+        gcs_bucket_name: Google Cloud Storage bucket name.
+        gcs_input_folder_path: Google Cloud Storage input folder path.
+        gcs_output_folder_path: Google Cloud Storage output folder path.
+        cloud_sql_db_name: Cloud SQL database name.
+        cloud_sql_region: Cloud SQL region.
+        cloud_job_region: Cloud job region.
+        cloud_service_region: Cloud service region.
+        cloud_run_job_name: Cloud Run job name.
+        cloud_run_service_name: Cloud Run service name.
+
+    """
 
     local_path: Path = Field(alias="LOCAL_PATH")
     gcp_project_id: str = Field(alias="GCP_PROJECT_ID")
@@ -83,10 +100,13 @@ def get_kg_settings(
 def get_kg_settings(
     *,
     source: Literal["env", "json"] = "env",
-    env_file: str | Path | None = None,
+    env_file: PathLike | Path | None = None,
     file: str | Path | None = None,
 ) -> KGSettings:
     """Return an instance of KGSettings.
+
+    Settings are the key configuration values needed to run the pipeline. They include
+    information about the GCP project, the GCS bucket, the Cloud SQL database, and the Cloud Run job.
 
     Args:
         source (str): Source of the settings. Can be "env" or "json".
