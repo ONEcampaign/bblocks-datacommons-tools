@@ -6,7 +6,7 @@ from google.cloud.storage import Bucket
 from bblocks.datacommons_tools.logger import logger
 
 _SKIP_IN_SUBDIR = {".json"}
-
+_VALID_EXTENSIONS = {".csv", ".json", ".mcf"}
 
 def _iter_local_files(directory: Path) -> Iterable[Path]:
     """Yield all the files to be uploaded (excluding the skipped ones in subdirectories)
@@ -43,6 +43,9 @@ def upload_directory_to_gcs(
     files_uploaded = 0
 
     for local_path in _iter_local_files(directory):
+        if local_path.suffix not in _VALID_EXTENSIONS:
+            logger.warning(f"Skipping unsupported file type: {local_path}")
+            continue
         remote_path = f"{gcs_folder_name}/{local_path.relative_to(directory)}"
         bucket.blob(remote_path).upload_from_filename(str(local_path))
         logger.info(f"Uploaded {local_path} to {remote_path}")
