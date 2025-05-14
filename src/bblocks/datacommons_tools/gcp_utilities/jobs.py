@@ -113,10 +113,10 @@ def redeploy_cloud_run_service(
 
     # Start the update operation
     operation = client.update_service(request=request)
-    logger.info(f"Started service update {request.name}....")
+    logger.info(f"Started service update....")
 
     # Wait for the update to complete
     response = operation.result(timeout=timeout)
     logger.info(
-        f"Service update {request.name} completed with response: {response.name}"
+        f"Service update completed with response: {response}"
     )
