@@ -98,7 +98,7 @@ def redeploy_cloud_run_service(
 
     """
 
-    service = client.get_service(name=settings.get_dc_service_path)
+    service = client.get_service(name=settings.dc_service_path)
     container = service.template.containers[0]
 
     # Replace the environment variables in the container.
