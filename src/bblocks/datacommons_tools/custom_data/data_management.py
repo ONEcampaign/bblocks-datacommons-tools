@@ -25,7 +25,10 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
     StatVarMCFNode,
     StatVarGroupMCFNode,
 )
-from bblocks.datacommons_tools.custom_data.schema_tools import csv_metadata_to_nodes
+from bblocks.datacommons_tools.custom_data.schema_tools import (
+    csv_metadata_to_nodes,
+    build_stat_var_groups_from_strings,
+)
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 DEFAULT_STARVAR_MCF_NAME: str = "custom_nodes.mcf"
@@ -371,6 +374,8 @@ class CustomDataManager:
         *,
         mcf_file_name: Optional[str] = DEFAULT_STARVAR_MCF_NAME,
         column_to_property_mapping: dict[str, str] = None,
+        parse_groups: bool = False,
+        group_namespace: Optional[str] = None,
         csv_options: dict[str, Any] = None,
         ignore_columns: Optional[List[str]] = None,
         override: bool = False,
@@ -383,6 +388,15 @@ class CustomDataManager:
             mcf_file_name: Name of the MCF file. Defaults to "custom_nodes.mcf".
             column_to_property_mapping: Optional map from CSV column names to
                 ``StatVarMCFNode`` attribute names.
+            parse_groups: If True, parse groups into StatVar nodes. That means the `memberOf`
+                attribute of each StatVar node in `stat_vars`, which is expected to be a
+                slash-separated string path describing its group hierarchy
+                (e.g.,"Economic/Employment/Unemployment"), gets transformed into StatVarGroupMCFNode
+                objects for each group level. This sets up their parent-child relationships,
+                and updates the original memberOf attribute to reference the deepest group DCID.
+                Defaults to False.
+            group_namespace: Namespace for the groups. If not provided, an empty string is used.
+                This is only used if parse_groups is True.
             csv_options: Extra keyword arguments forwarded verbatim to
                 ``pandas.read_csv``.
             ignore_columns: List of columns to ignore in the CSV file.
@@ -394,6 +408,18 @@ class CustomDataManager:
             csv_options=csv_options,
             ignore_columns=ignore_columns,
         )
+
+        if parse_groups:
+            if not group_namespace:
+                group_namespace = ""
+            stat_vars = build_stat_var_groups_from_strings(
+                stat_vars, groups_namespace=group_namespace
+            )
+        else:
+            if group_namespace:
+                raise ValueError(
+                    "group_namespace should not be set if parse_groups is False"
+                )
 
         # validate the file name
         name = _validate_mcf_file_name(mcf_file_name)
