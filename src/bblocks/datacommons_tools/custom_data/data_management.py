@@ -744,9 +744,10 @@ class CustomDataManager:
     def __repr__(self) -> str:
         input_files_count = len(self._config.inputFiles)
         sources_count = len(self._config.sources)
-        nodes_count = len(
-            [var for var in [n.nodes for n in self._mcf_nodes.values()] if var]
+        nodes_count = sum(
+            [len(var) for var in [n.nodes for n in self._mcf_nodes.values()] if var]
         )
+
         variables_count = len(self._config.variables or {}) + nodes_count
         dataframes_count = len(self._data)
 
