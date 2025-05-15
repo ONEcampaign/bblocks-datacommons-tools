@@ -102,7 +102,9 @@ def to_camelCase(segment: str) -> str:
 
     # Split by whitespace and join with camel case
     words = re.split(r"\s+", seg)
-    return words[0].lower() + "".join(w.title() for w in words[1:])
+    return words[0].lower() + "".join(w.title() for w in words[1:]).replace(
+        ":", "_"
+    ).replace(",", "_")
 
 
 def build_stat_var_groups_from_strings(stat_vars, *, groups_namespace: str):
@@ -129,7 +131,7 @@ def build_stat_var_groups_from_strings(stat_vars, *, groups_namespace: str):
     """
 
     group_nodes, seen = [], set()
-    root = f"dcid: {groups_namespace}/g/"
+    root = f"dcid:{groups_namespace}/g/"
 
     for node_idx, node in enumerate(stat_vars.nodes):
         # clean
@@ -149,7 +151,7 @@ def build_stat_var_groups_from_strings(stat_vars, *, groups_namespace: str):
             seen.add(group_node)
 
             if idx == 0:
-                parent = "dcid: dc/g/Root"
+                parent = "dcid:dc/g/Root"
             else:
                 parent = root + f"{slug_parts[idx - 1]}"
 
