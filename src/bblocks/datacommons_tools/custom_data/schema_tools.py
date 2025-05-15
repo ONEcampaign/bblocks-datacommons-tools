@@ -90,7 +90,7 @@ def to_camelCase(segment: str) -> str:
     Turn a segment like 'Official Development Assistance' into 'officialDevelopmentAssistance'.
     Keep all-upper or already-camel segments (e.g. DAC1, ODA) unchanged.
     """
-    seg = segment.strip()
+    seg = segment.strip().replace(":", "_").replace(",", "_")
 
     # All upper case
     if re.fullmatch(r"[A-Z0-9]+", seg):
@@ -102,9 +102,7 @@ def to_camelCase(segment: str) -> str:
 
     # Split by whitespace and join with camel case
     words = re.split(r"\s+", seg)
-    return words[0].lower() + "".join(w.title() for w in words[1:]).replace(
-        ":", "_"
-    ).replace(",", "_")
+    return words[0].lower() + "".join(w.title() for w in words[1:])
 
 
 def build_stat_var_groups_from_strings(stat_vars, *, groups_namespace: str):
