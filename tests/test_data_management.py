@@ -252,3 +252,53 @@ def test_remove_indicator_and_provenance():
 
     with pytest.raises(ValueError):
         manager.remove_by_provenance("unknown")
+
+
+def test_remove_provenance_and_source_methods():
+    manager = CustomDataManager()
+    manager.add_provenance("p1", "http://prov1", "s1", source_url="http://src")
+    manager.add_provenance("p2", "http://prov2", "s1")
+
+    df = pd.DataFrame({"A": [1]})
+    manager.add_implicit_schema_file(
+        file_name="a.csv",
+        provenance="p1",
+        data=df,
+        entityType="Country",
+        observationProperties={"unit": "u"},
+    )
+    manager.add_explicit_schema_file(
+        file_name="b.csv",
+        provenance="p2",
+        data=df,
+    )
+
+    manager.remove_provenance("p1")
+
+    # provenance removed from sources and data
+    assert "p1" not in manager._config.sources["s1"].provenances
+    assert "a.csv" not in manager._config.inputFiles
+    assert "a.csv" not in manager._data
+
+    manager.remove_by_source("s1")
+
+    # remaining provenance data removed but source still present
+    assert "b.csv" not in manager._config.inputFiles
+    assert "b.csv" not in manager._data
+    assert "s1" in manager._config.sources
+
+    # remove_source works on a fresh manager
+    manager2 = CustomDataManager()
+    manager2.add_provenance("p1", "http://prov", "s1", source_url="http://src")
+    manager2.add_implicit_schema_file(
+        file_name="c.csv",
+        provenance="p1",
+        data=df,
+        entityType="Country",
+        observationProperties={"unit": "u"},
+    )
+
+    manager2.remove_source("s1")
+
+    assert "s1" not in manager2._config.sources
+    assert "c.csv" not in manager2._config.inputFiles

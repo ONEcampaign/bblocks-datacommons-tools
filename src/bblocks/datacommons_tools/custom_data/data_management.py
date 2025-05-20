@@ -706,6 +706,42 @@ class CustomDataManager:
 
         return self
 
+    def remove_provenance(self, provenance: str) -> CustomDataManager:
+        """Remove a provenance and any associated data and references."""
+
+        self.remove_by_provenance(provenance)
+
+        found = False
+        for source in self._config.sources.values():
+            if provenance in source.provenances:
+                del source.provenances[provenance]
+                found = True
+
+        if not found:
+            raise ValueError(f"Provenance '{provenance}' not found in sources")
+
+        return self
+
+    def remove_by_source(self, source: str) -> CustomDataManager:
+        """Remove all data associated with every provenance of a source."""
+
+        if source not in self._config.sources:
+            raise ValueError(f"Source '{source}' not found")
+
+        for prov in list(self._config.sources[source].provenances.keys()):
+            self.remove_by_provenance(prov)
+
+        return self
+
+    def remove_source(self, source: str) -> CustomDataManager:
+        """Remove a source and all its provenances from the config and data."""
+
+        self.remove_by_source(source)
+
+        del self._config.sources[source]
+
+        return self
+
     def export_config(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
 
