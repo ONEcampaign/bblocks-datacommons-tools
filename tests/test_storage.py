@@ -16,9 +16,9 @@ from bblocks.datacommons_tools.custom_data.models.data_files import (
 from bblocks.datacommons_tools.custom_data.models.sources import Source
 
 
-def _minimal_config() -> Config:
+def _minimal_config(key: str = "a.csv") -> Config:
     input_files = {
-        "a.csv": ImplicitSchemaFile(
+        key: ImplicitSchemaFile(
             provenance="prov",
             entityType="Country",
             observationProperties=ObservationProperties(),
@@ -58,6 +58,20 @@ def test_get_unregistered_csv_files():
     cfg = _minimal_config()
     missing = get_unregistered_csv_files(bucket, cfg, "folder")
     assert missing == ["extra.csv"]
+
+
+def test_get_unregistered_csv_files_with_prefix_removed():
+    bucket = Mock()
+    blob_a = Mock()
+    blob_a.name = "prefix/sub/a.csv"
+    blob_extra = Mock()
+    blob_extra.name = "prefix/sub/b.csv"
+    bucket.list_blobs.return_value = [blob_a, blob_extra]
+
+    cfg = _minimal_config("sub/a.csv")
+    missing = get_unregistered_csv_files(bucket, cfg, "prefix")
+
+    assert missing == ["sub/b.csv"]
 
 
 def test_delete_bucket_files():

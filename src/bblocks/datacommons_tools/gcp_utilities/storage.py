@@ -92,7 +92,7 @@ def list_bucket_files(bucket: Bucket, gcs_folder_name: str | None = None) -> lis
 
 
 def get_unregistered_csv_files(
-    bucket: Bucket, config: Config, gcs_folder_name: str | None = None
+    bucket: Bucket, config: Config | dict, gcs_folder_name: str | None = None
 ) -> list[str]:
     """Identify CSV files in the bucket not referenced in ``config``.
 
@@ -108,9 +108,22 @@ def get_unregistered_csv_files(
     """
 
     blob_names = list_bucket_files(bucket=bucket, gcs_folder_name=gcs_folder_name)
-    csv_files = [Path(name).name for name in blob_names if Path(name).suffix == ".csv"]
+    csv_files: list[str] = []
+    for name in blob_names:
+        path = Path(name)
+        if path.suffix != ".csv":
+            continue
+        if gcs_folder_name:
+            try:
+                path = path.relative_to(gcs_folder_name)
+            except ValueError:
+                pass
+        csv_files.append(str(path))
 
-    registered = set(config.get("inputFiles", {}).keys())
+    if isinstance(config, dict):
+        config = Config.model_validate(config)
+
+    registered = set(config.inputFiles.keys())
     return [name for name in csv_files if name not in registered]
 
 
