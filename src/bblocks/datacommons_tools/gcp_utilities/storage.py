@@ -196,13 +196,15 @@ def get_missing_csv_files(
     return missing
 
 
-def delete_bucket_files(bucket: Bucket, blob_names: Iterable[str]) -> None:
+def delete_bucket_files(bucket: Bucket, blob_names: list[str] | str) -> None:
     """Delete the specified blobs from ``bucket``.
 
     Args:
         bucket (Bucket): GCS bucket instance.
         blob_names (Iterable[str]): Names of the blobs to delete.
     """
+    if isinstance(blob_names, str):
+        blob_names = [blob_names]
 
     for name in blob_names:
         bucket.blob(name).delete()
