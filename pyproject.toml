@@ -21,9 +21,9 @@ dependencies = [
 [tool.poetry]
 packages = [{include = "bblocks", from = "src"}]
 
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
+black = {extras = ["d"], version = "^25.1.0"}
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
