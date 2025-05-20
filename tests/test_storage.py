@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+import pandas as pd
+
 from bblocks.datacommons_tools.gcp_utilities.storage import (
     list_bucket_files,
     get_unregistered_csv_files,
@@ -76,14 +78,38 @@ def test_delete_bucket_files():
         b.delete.assert_called_once()
 
 
-def test_get_bucket_files():
+def test_get_bucket_files_csv_single():
     bucket = Mock()
     blob = Mock()
-    blob.download_as_bytes.return_value = b"data"
+    blob.download_as_bytes.return_value = b"a,b\n1,2\n"
     bucket.blob.return_value = blob
 
     result = get_bucket_files(bucket, "a.csv")
 
     bucket.blob.assert_called_once_with("a.csv")
     blob.download_as_bytes.assert_called_once_with()
-    assert result == {"a.csv": b"data"}
+    expected = pd.DataFrame({"a": [1], "b": [2]})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_bucket_files_multiple_types():
+    bucket = Mock()
+    blob_csv = Mock()
+    blob_json = Mock()
+    blob_mcf = Mock()
+
+    blob_csv.download_as_bytes.return_value = b"a,b\n1,2\n"
+    blob_json.download_as_bytes.return_value = b'{"x": 1}'
+    blob_mcf.download_as_bytes.return_value = b'Node: n\nname: "N"\ntypeOf: T\n\n'
+
+    def blob_side(name: str):
+        return {"a.csv": blob_csv, "b.json": blob_json, "c.mcf": blob_mcf}[name]
+
+    bucket.blob.side_effect = blob_side
+
+    result = get_bucket_files(bucket, ["a.csv", "b.json", "c.mcf"])
+
+    expected_df = pd.DataFrame({"a": [1], "b": [2]})
+    pd.testing.assert_frame_equal(result["a.csv"], expected_df)
+    assert result["b.json"] == {"x": 1}
+    assert result["c.mcf"].nodes[0].Node == "n"

@@ -1,10 +1,16 @@
+import io
+import json
+import tempfile
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, Any
+
+import pandas as pd
 
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 
 from google.cloud.storage import Bucket
 
+from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes
 from bblocks.datacommons_tools.logger import logger
 
 _SKIP_IN_SUBDIR = {".json"}
@@ -123,7 +129,7 @@ def delete_bucket_files(bucket: Bucket, blob_names: Iterable[str]) -> None:
 
 def get_bucket_files(
     bucket: Bucket, blob_names: Sequence[str] | str
-) -> dict[str, bytes]:
+) -> Any | dict[str, Any]:
     """Download files from ``bucket`` and return their content.
 
     Args:
@@ -131,15 +137,33 @@ def get_bucket_files(
         blob_names (Sequence[str] | str): Name or names of the blobs to download.
 
     Returns:
-        dict[str, bytes]: Mapping of blob name to its content as bytes.
+        Any: Parsed object(s) from the downloaded blob(s).
     """
 
+    single = False
     if isinstance(blob_names, str):
         blob_names = [blob_names]
+        single = True
 
-    contents: dict[str, bytes] = {}
+    results: dict[str, Any] = {}
     for name in blob_names:
-        contents[name] = bucket.blob(name).download_as_bytes()
+        raw = bucket.blob(name).download_as_bytes()
+        ext = Path(name).suffix.lower()
+        if ext == ".csv":
+            results[name] = pd.read_csv(io.BytesIO(raw))
+        elif ext == ".json":
+            results[name] = json.loads(raw.decode("utf-8"))
+        elif ext == ".mcf":
+            with tempfile.NamedTemporaryFile(suffix=".mcf", delete=True) as tmp:
+                tmp.write(raw)
+                tmp.flush()
+                results[name] = MCFNodes().load_from_mcf_file(tmp.name)
+        else:
+            results[name] = raw
         logger.info(f"Downloaded {name} from bucket {bucket.name}")
 
-    return contents
+    if single:
+        # Return the only item directly
+        return next(iter(results.values()))
+
+    return results
