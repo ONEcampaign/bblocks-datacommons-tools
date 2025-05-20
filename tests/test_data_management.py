@@ -107,6 +107,23 @@ def test_add_implicit_and_explicit_schema_file_registration_and_override(tmp_pat
         manager.add_data(df4, "no_file.csv")
 
 
+def test_add_explicit_schema_file_without_column_mappings():
+    """Ensure missing columnMappings defaults to empty dict without error."""
+    manager = CustomDataManager()
+    manager.add_provenance("p1", "http://prov", "s1", source_url="http://src")
+
+    df = pd.DataFrame({"A": [1]})
+    manager.add_explicit_schema_file(
+        file_name="exp.csv",
+        provenance="p1",
+        data=df,
+    )
+
+    assert "exp.csv" in manager._config.inputFiles
+    mappings = manager._config.inputFiles["exp.csv"].columnMappings
+    assert mappings.model_dump(exclude_none=True) == {}
+
+
 def test_export_methods(tmp_path):
     """
     Exercises export_config, export_data, and export_mcf_file.
