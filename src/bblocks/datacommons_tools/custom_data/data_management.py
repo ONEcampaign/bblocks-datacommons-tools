@@ -85,7 +85,7 @@ class CustomDataManager:
     >>>     source_url="https://example.com/source"
     >>> )
 
-    This will add a provenance and a source in the config. If the already exists,
+    This will add a provenance and a source in the config. If the source already exists,
     you can add another provenance to the existing source
     >>> dc_manager.add_provenance(
     >>>    provenance_name="Provenance Name",
@@ -178,7 +178,7 @@ class CustomDataManager:
         Initialize the CustomDataManager object
         Args:
             config_file: Path to the config json file. If not provided, a new config object will be created.
-            mcf_files: Path to one or more MFC files. If not provided, a new MCFNodes object will be created.
+            mcf_files: Path to one or more MCF files. If not provided, a new MCFNodes object will be created.
         """
 
         self._config = (
