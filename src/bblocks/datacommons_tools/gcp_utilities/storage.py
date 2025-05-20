@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Iterable
 
+from bblocks.datacommons_tools.custom_data.models.config_file import Config
+
 from google.cloud.storage import Bucket
 
 from bblocks.datacommons_tools.logger import logger
@@ -54,3 +56,53 @@ def upload_directory_to_gcs(
     logger.info(
         f"Uploaded {files_uploaded} files to {gcs_folder_name} in GCS bucket {bucket.name}"
     )
+
+
+def list_bucket_files(bucket: Bucket, gcs_folder_name: str) -> list[str]:
+    """Return the list of blob names in ``gcs_folder_name``.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        gcs_folder_name (str): Folder path prefix in the bucket.
+
+    Returns:
+        list[str]: Blob names found under the given prefix.
+    """
+
+    blobs = bucket.list_blobs(prefix=gcs_folder_name)
+    return [blob.name for blob in blobs]
+
+
+def get_unregistered_csv_files(
+    bucket: Bucket, gcs_folder_name: str, config: Config
+) -> list[str]:
+    """Identify CSV files in the bucket not referenced in ``config``.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        gcs_folder_name (str): Folder path prefix in the bucket.
+        config (Config): Parsed configuration object.
+
+    Returns:
+        list[str]: CSV file names present in the bucket but missing from
+            ``config.inputFiles``.
+    """
+
+    blob_names = list_bucket_files(bucket=bucket, gcs_folder_name=gcs_folder_name)
+    csv_files = [Path(name).name for name in blob_names if Path(name).suffix == ".csv"]
+
+    registered = set(config.inputFiles.keys())
+    return [name for name in csv_files if name not in registered]
+
+
+def delete_bucket_files(bucket: Bucket, blob_names: Iterable[str]) -> None:
+    """Delete the specified blobs from ``bucket``.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        blob_names (Iterable[str]): Names of the blobs to delete.
+    """
+
+    for name in blob_names:
+        bucket.blob(name).delete()
+        logger.info(f"Deleted {name} from bucket {bucket.name}")
