@@ -618,6 +618,130 @@ class CustomDataManager:
         self._data[file_name] = data
         return self
 
+    def remove_indicator(
+        self, indicator_id: str, *, mcf_file_name: str | None = None
+    ) -> CustomDataManager:
+        """Remove a single indicator from the manager.
+
+        This deletes the indicator from the ``variables`` section of the config
+        and from any loaded MCF files. If ``mcf_file_name`` is provided, only
+        that MCF file is searched; otherwise all MCF files will be inspected.
+
+        Args:
+            indicator_id: Identifier of the indicator/StatVar to remove.
+            mcf_file_name: Optional name of the MCF file from which to remove the
+                node. If omitted, all managed MCF files are searched.
+
+        Raises:
+            ValueError: If the indicator is not found in either the config or any
+                MCF file.
+        """
+
+        found = False
+
+        # remove from config variables
+        if self._config.variables and indicator_id in self._config.variables:
+            del self._config.variables[indicator_id]
+            found = True
+
+        # remove from mcf files
+        file_names = (
+            [
+                (
+                    _validate_mcf_file_name(mcf_file_name)
+                    if mcf_file_name is not None
+                    else None
+                )
+            ]
+            if mcf_file_name
+            else self._mcf_nodes.keys()
+        )
+        for name in file_names:
+            nodes = self._mcf_nodes.get(name)
+            if not nodes:
+                continue
+            try:
+                nodes.remove(indicator_id)
+                found = True
+            except ValueError:
+                pass
+
+        if not found:
+            raise ValueError(f"Indicator '{indicator_id}' not found")
+
+        return self
+
+    def remove_by_provenance(self, provenance: str) -> CustomDataManager:
+        """Remove all files and indicators associated with a provenance."""
+
+        removed = False
+
+        # Remove input files and corresponding data
+        files_to_remove = [
+            f
+            for f, info in self._config.inputFiles.items()
+            if info.provenance == provenance
+        ]
+        for file_name in files_to_remove:
+            self._config.inputFiles.pop(file_name)
+            self._data.pop(file_name, None)
+            removed = True
+
+        # Remove variables that explicitly store the provenance in their properties
+        if self._config.variables:
+            for var_name, var in list(self._config.variables.items()):
+                if var.properties and var.properties.get("provenance") == provenance:
+                    del self._config.variables[var_name]
+                    removed = True
+
+        # Remove MCF nodes with a matching provenance property
+        for nodes in self._mcf_nodes.values():
+            for node in list(nodes.nodes):
+                if getattr(node, "provenance", None) == f'"{provenance}"':
+                    nodes.remove(node.Node)
+                    removed = True
+
+        if not removed:
+            raise ValueError(f"No data found for provenance '{provenance}'")
+
+        return self
+
+    def remove_provenance(self, provenance: str) -> CustomDataManager:
+        """Remove a provenance and any associated data and references."""
+
+        self.remove_by_provenance(provenance)
+
+        found = False
+        for source in self._config.sources.values():
+            if provenance in source.provenances:
+                del source.provenances[provenance]
+                found = True
+
+        if not found:
+            raise ValueError(f"Provenance '{provenance}' not found in sources")
+
+        return self
+
+    def remove_by_source(self, source: str) -> CustomDataManager:
+        """Remove all data associated with every provenance of a source."""
+
+        if source not in self._config.sources:
+            raise ValueError(f"Source '{source}' not found")
+
+        for prov in list(self._config.sources[source].provenances.keys()):
+            self.remove_by_provenance(prov)
+
+        return self
+
+    def remove_source(self, source: str) -> CustomDataManager:
+        """Remove a source and all its provenances from the config and data."""
+
+        self.remove_by_source(source)
+
+        del self._config.sources[source]
+
+        return self
+
     def export_config(self, dir_path: str | PathLike[str]) -> None:
         """Export the config to a JSON file
 
