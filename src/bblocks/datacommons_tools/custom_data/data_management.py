@@ -575,6 +575,10 @@ class CustomDataManager:
         # check if the file already exists
         self._data_override_check(file_name=file_name, override=override)
 
+        # ensure columnMappings is a dictionary
+        if columnMappings is None:
+            columnMappings = {}
+
         # add the file to the config
         self._config.inputFiles[file_name] = ExplicitSchemaFile(
             ignoreColumns=ignoreColumns,
