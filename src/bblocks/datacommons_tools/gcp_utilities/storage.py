@@ -110,7 +110,7 @@ def get_unregistered_csv_files(
     blob_names = list_bucket_files(bucket=bucket, gcs_folder_name=gcs_folder_name)
     csv_files = [Path(name).name for name in blob_names if Path(name).suffix == ".csv"]
 
-    registered = set(config.inputFiles.keys())
+    registered = set(config.get("inputFiles", {}).keys())
     return [name for name in csv_files if name not in registered]
 
 
