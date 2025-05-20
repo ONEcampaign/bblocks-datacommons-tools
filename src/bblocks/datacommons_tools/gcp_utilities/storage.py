@@ -3,6 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Iterable, Sequence, Any
+from urllib.parse import urlparse
 
 import pandas as pd
 
@@ -30,6 +31,39 @@ def _iter_local_files(directory: Path) -> Iterable[Path]:
         if path.parent != directory and path.suffix in _SKIP_IN_SUBDIR:
             continue
         yield path
+
+
+def _normalize_gcs_prefix(bucket: Bucket, prefix: str | None) -> str | None:
+    """Normalize ``prefix`` for use with :func:`Bucket.list_blobs`.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        prefix (str | None): The folder path. May include a ``gs://`` prefix.
+
+    Returns:
+        str | None: Sanitized prefix with trailing slash or ``None``.
+
+    Raises:
+        ValueError: If the bucket specified in ``prefix`` does not match
+            ``bucket``.
+    """
+
+    if prefix is None:
+        return None
+
+    if prefix.startswith("gs://"):
+        parsed = urlparse(prefix)
+        if parsed.netloc and parsed.netloc != bucket.name:
+            raise ValueError(
+                f"Bucket '{parsed.netloc}' does not match target bucket '{bucket.name}'"
+            )
+        prefix = parsed.path.lstrip("/")
+
+    prefix = prefix.strip("/")
+    if not prefix:
+        return None
+
+    return f"{prefix}/"
 
 
 def upload_directory_to_gcs(
@@ -83,12 +117,14 @@ def list_bucket_files(bucket: Bucket, gcs_folder_name: str | None = None) -> lis
         list[str]: Blob names found under the given prefix.
     """
 
-    blobs = (
-        bucket.list_blobs(prefix=gcs_folder_name)
-        if gcs_folder_name
-        else bucket.list_blobs()
-    )
-    return [blob.name for blob in blobs]
+    prefix = _normalize_gcs_prefix(bucket, gcs_folder_name)
+    blobs_iter = bucket.list_blobs(prefix=prefix) if prefix else bucket.list_blobs()
+    blob_names = [blob.name for blob in blobs_iter]
+    if gcs_folder_name and not blob_names:
+        raise FileNotFoundError(
+            f"The folder '{gcs_folder_name}' does not exist in bucket '{bucket.name}'"
+        )
+    return blob_names
 
 
 def get_unregistered_csv_files(
@@ -125,6 +161,39 @@ def get_unregistered_csv_files(
 
     registered = set(config.inputFiles.keys())
     return [name for name in csv_files if name not in registered]
+
+
+def get_missing_csv_files(
+    bucket: Bucket, config: Config | dict, gcs_folder_name: str | None = None
+) -> list[str]:
+    """Identify CSV files referenced in ``config`` but absent from ``bucket``.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        config (Config | dict): Parsed configuration object.
+        gcs_folder_name (str | None): Folder path prefix in the bucket. If
+            ``None``, search the entire bucket.
+
+    Returns:
+        list[str]: CSV file names present in ``config.inputFiles`` but missing
+            from the bucket.
+    """
+
+    blob_names = set(list_bucket_files(bucket=bucket, gcs_folder_name=gcs_folder_name))
+
+    if isinstance(config, dict):
+        config = Config.model_validate(config)
+
+    missing: list[str] = []
+    for name in config.inputFiles.keys():
+        path = Path(name)
+        if path.suffix != ".csv":
+            continue
+        blob_name = f"{gcs_folder_name}/{name}" if gcs_folder_name else name
+        if blob_name not in blob_names:
+            missing.append(name)
+
+    return missing
 
 
 def delete_bucket_files(bucket: Bucket, blob_names: Iterable[str]) -> None:

@@ -6,6 +6,7 @@ from bblocks.datacommons_tools.gcp_utilities.pipeline import (
 from bblocks.datacommons_tools.gcp_utilities.storage import (
     list_bucket_files,
     get_unregistered_csv_files,
+    get_missing_csv_files,
     delete_bucket_files,
     get_bucket_files,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "redeploy_service",
     "list_bucket_files",
     "get_unregistered_csv_files",
+    "get_missing_csv_files",
     "delete_bucket_files",
     "get_bucket_files",
     "get_kg_settings",

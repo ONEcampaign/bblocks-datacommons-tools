@@ -1,10 +1,13 @@
 from unittest.mock import Mock
 
+import pytest
+
 import pandas as pd
 
 from bblocks.datacommons_tools.gcp_utilities.storage import (
     list_bucket_files,
     get_unregistered_csv_files,
+    get_missing_csv_files,
     delete_bucket_files,
     get_bucket_files,
 )
@@ -35,8 +38,22 @@ def test_list_bucket_files_with_prefix():
     blob_b = Mock()
     blob_b.name = "folder/b.csv"
     bucket.list_blobs.return_value = [blob_a, blob_b]
+    bucket.name = "my-bucket"
     assert list_bucket_files(bucket, "folder") == ["folder/a.csv", "folder/b.csv"]
-    bucket.list_blobs.assert_called_once_with(prefix="folder")
+    bucket.list_blobs.assert_called_once_with(prefix="folder/")
+
+
+def test_list_bucket_files_with_gs_path():
+    bucket = Mock()
+    blob = Mock()
+    blob.name = "one-data/a.csv"
+    bucket.list_blobs.return_value = [blob]
+    bucket.name = "one-datacommons-staging"
+
+    result = list_bucket_files(bucket, "gs://one-datacommons-staging/one-data")
+
+    assert result == ["one-data/a.csv"]
+    bucket.list_blobs.assert_called_once_with(prefix="one-data/")
 
 
 def test_list_bucket_files_root():
@@ -44,8 +61,20 @@ def test_list_bucket_files_root():
     blob_a = Mock()
     blob_a.name = "a.csv"
     bucket.list_blobs.return_value = [blob_a]
+    bucket.name = "my-bucket"
     assert list_bucket_files(bucket) == ["a.csv"]
     bucket.list_blobs.assert_called_once_with()
+
+
+def test_list_bucket_files_missing_folder():
+    bucket = Mock()
+    bucket.list_blobs.return_value = []
+    bucket.name = "my-bucket"
+
+    with pytest.raises(FileNotFoundError):
+        list_bucket_files(bucket, "missing")
+
+    bucket.list_blobs.assert_called_once_with(prefix="missing/")
 
 
 def test_get_unregistered_csv_files():
@@ -55,6 +84,7 @@ def test_get_unregistered_csv_files():
     blob_extra = Mock()
     blob_extra.name = "folder/extra.csv"
     bucket.list_blobs.return_value = [blob_a, blob_extra]
+    bucket.name = "my-bucket"
     cfg = _minimal_config()
     missing = get_unregistered_csv_files(bucket, cfg, "folder")
     assert missing == ["extra.csv"]
@@ -67,9 +97,46 @@ def test_get_unregistered_csv_files_with_prefix_removed():
     blob_extra = Mock()
     blob_extra.name = "prefix/sub/b.csv"
     bucket.list_blobs.return_value = [blob_a, blob_extra]
+    bucket.name = "my-bucket"
 
     cfg = _minimal_config("sub/a.csv")
     missing = get_unregistered_csv_files(bucket, cfg, "prefix")
+
+    assert missing == ["sub/b.csv"]
+
+
+def test_get_missing_csv_files():
+    bucket = Mock()
+    blob_a = Mock()
+    blob_a.name = "folder/a.csv"
+    bucket.list_blobs.return_value = [blob_a]
+
+    cfg = _minimal_config()
+    cfg.inputFiles["extra.csv"] = ImplicitSchemaFile(
+        provenance="prov",
+        entityType="Country",
+        observationProperties=ObservationProperties(),
+    )
+
+    missing = get_missing_csv_files(bucket, cfg, "folder")
+
+    assert missing == ["extra.csv"]
+
+
+def test_get_missing_csv_files_with_prefix_added():
+    bucket = Mock()
+    blob_a = Mock()
+    blob_a.name = "prefix/sub/a.csv"
+    bucket.list_blobs.return_value = [blob_a]
+
+    cfg = _minimal_config("sub/a.csv")
+    cfg.inputFiles["sub/b.csv"] = ImplicitSchemaFile(
+        provenance="prov",
+        entityType="Country",
+        observationProperties=ObservationProperties(),
+    )
+
+    missing = get_missing_csv_files(bucket, cfg, "prefix")
 
     assert missing == ["sub/b.csv"]
 
