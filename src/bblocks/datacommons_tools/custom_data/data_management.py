@@ -31,7 +31,7 @@ from bblocks.datacommons_tools.custom_data.schema_tools import (
 )
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
-DEFAULT_STARVAR_MCF_NAME: str = "custom_nodes.mcf"
+DEFAULT_STATVAR_MCF_NAME: str = "custom_nodes.mcf"
 DEFAULT_GROUP_NAME: str = "custom_groups.mcf"
 
 
@@ -200,7 +200,7 @@ class CustomDataManager:
                     }
         else:
             self._mcf_nodes: dict[str, MCFNodes] = {
-                DEFAULT_STARVAR_MCF_NAME: MCFNodes()
+                DEFAULT_STATVAR_MCF_NAME: MCFNodes()
             }
 
         self._data = {}
@@ -286,7 +286,7 @@ class CustomDataManager:
         measurementDenominator: Optional[str] = None,
         additional_properties: Optional[Dict[str, str]] = None,
         override: bool = False,
-        mcf_file_name: MCFFileName | str = DEFAULT_STARVAR_MCF_NAME,
+        mcf_file_name: MCFFileName | str = DEFAULT_STATVAR_MCF_NAME,
     ):
         """Add a StatVar node for the MCF file
 
@@ -372,7 +372,7 @@ class CustomDataManager:
         self,
         csv_file_path: str | Path,
         *,
-        mcf_file_name: Optional[str] = DEFAULT_STARVAR_MCF_NAME,
+        mcf_file_name: Optional[str] = DEFAULT_STATVAR_MCF_NAME,
         column_to_property_mapping: dict[str, str] = None,
         parse_groups: bool = False,
         group_namespace: Optional[str] = None,
@@ -640,7 +640,7 @@ class CustomDataManager:
     def export_mfc_file(
         self,
         dir_path: str | PathLike[str],
-        mcf_file_name: str = DEFAULT_STARVAR_MCF_NAME,
+        mcf_file_name: str = DEFAULT_STATVAR_MCF_NAME,
         override: bool = False,
     ) -> None:
         """Export the MCF file to a file
