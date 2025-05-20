@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 
@@ -9,6 +9,7 @@ from bblocks.datacommons_tools.logger import logger
 
 _SKIP_IN_SUBDIR = {".json"}
 _VALID_EXTENSIONS = {".csv", ".json", ".mcf"}
+
 
 def _iter_local_files(directory: Path) -> Iterable[Path]:
     """Yield all the files to be uploaded (excluding the skipped ones in subdirectories)
@@ -26,7 +27,7 @@ def _iter_local_files(directory: Path) -> Iterable[Path]:
 
 
 def upload_directory_to_gcs(
-    bucket: Bucket, directory: Path, gcs_folder_name: str
+    bucket: Bucket, directory: Path, gcs_folder_name: str | None = None
 ) -> None:
     """Upload a local directory to Google Cloud Storage. Folder structures
     is maintained in the GCS bucket in a specified base folder
@@ -34,7 +35,9 @@ def upload_directory_to_gcs(
     Args:
         bucket (Bucket): GCS bucket instance.
         directory (Path): Local directory to upload.
-        gcs_folder_name (str): Name of the base folder in the GCS bucket to store the data
+        gcs_folder_name (str | None): Name of the base folder in the GCS bucket
+            to store the data. If ``None``, files are uploaded to the bucket
+            root while maintaining the directory structure.
 
     Raises:
         FileNotFoundError: If the specified directory does not exist.
@@ -48,40 +51,50 @@ def upload_directory_to_gcs(
         if local_path.suffix not in _VALID_EXTENSIONS:
             logger.warning(f"Skipping unsupported file type: {local_path}")
             continue
-        remote_path = f"{gcs_folder_name}/{local_path.relative_to(directory)}"
+        relative = local_path.relative_to(directory)
+        remote_path = (
+            f"{gcs_folder_name}/{relative}" if gcs_folder_name else str(relative)
+        )
         bucket.blob(remote_path).upload_from_filename(str(local_path))
         logger.info(f"Uploaded {local_path} to {remote_path}")
         files_uploaded += 1
 
+    dest = gcs_folder_name if gcs_folder_name else "root"
     logger.info(
-        f"Uploaded {files_uploaded} files to {gcs_folder_name} in GCS bucket {bucket.name}"
+        f"Uploaded {files_uploaded} files to {dest} in GCS bucket {bucket.name}"
     )
 
 
-def list_bucket_files(bucket: Bucket, gcs_folder_name: str) -> list[str]:
+def list_bucket_files(bucket: Bucket, gcs_folder_name: str | None = None) -> list[str]:
     """Return the list of blob names in ``gcs_folder_name``.
 
     Args:
         bucket (Bucket): GCS bucket instance.
-        gcs_folder_name (str): Folder path prefix in the bucket.
+        gcs_folder_name (str | None): Folder path prefix in the bucket. If
+            ``None``, all files in the bucket are returned.
 
     Returns:
         list[str]: Blob names found under the given prefix.
     """
 
-    blobs = bucket.list_blobs(prefix=gcs_folder_name)
+    blobs = (
+        bucket.list_blobs(prefix=gcs_folder_name)
+        if gcs_folder_name
+        else bucket.list_blobs()
+    )
     return [blob.name for blob in blobs]
 
 
 def get_unregistered_csv_files(
-    bucket: Bucket, gcs_folder_name: str, config: Config
+    bucket: Bucket, config: Config, gcs_folder_name: str | None = None
 ) -> list[str]:
     """Identify CSV files in the bucket not referenced in ``config``.
 
     Args:
         bucket (Bucket): GCS bucket instance.
-        gcs_folder_name (str): Folder path prefix in the bucket.
         config (Config): Parsed configuration object.
+        gcs_folder_name (str | None): Folder path prefix in the bucket. If
+            ``None``, search the entire bucket.
 
     Returns:
         list[str]: CSV file names present in the bucket but missing from
@@ -106,3 +119,27 @@ def delete_bucket_files(bucket: Bucket, blob_names: Iterable[str]) -> None:
     for name in blob_names:
         bucket.blob(name).delete()
         logger.info(f"Deleted {name} from bucket {bucket.name}")
+
+
+def get_bucket_files(
+    bucket: Bucket, blob_names: Sequence[str] | str
+) -> dict[str, bytes]:
+    """Download files from ``bucket`` and return their content.
+
+    Args:
+        bucket (Bucket): GCS bucket instance.
+        blob_names (Sequence[str] | str): Name or names of the blobs to download.
+
+    Returns:
+        dict[str, bytes]: Mapping of blob name to its content as bytes.
+    """
+
+    if isinstance(blob_names, str):
+        blob_names = [blob_names]
+
+    contents: dict[str, bytes] = {}
+    for name in blob_names:
+        contents[name] = bucket.blob(name).download_as_bytes()
+        logger.info(f"Downloaded {name} from bucket {bucket.name}")
+
+    return contents

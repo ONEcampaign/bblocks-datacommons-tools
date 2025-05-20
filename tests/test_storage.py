@@ -4,6 +4,7 @@ from bblocks.datacommons_tools.gcp_utilities.storage import (
     list_bucket_files,
     get_unregistered_csv_files,
     delete_bucket_files,
+    get_bucket_files,
 )
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.data_files import (
@@ -25,7 +26,7 @@ def _minimal_config() -> Config:
     return Config(inputFiles=input_files, sources=sources)
 
 
-def test_list_bucket_files():
+def test_list_bucket_files_with_prefix():
     bucket = Mock()
     blob_a = Mock()
     blob_a.name = "folder/a.csv"
@@ -36,6 +37,15 @@ def test_list_bucket_files():
     bucket.list_blobs.assert_called_once_with(prefix="folder")
 
 
+def test_list_bucket_files_root():
+    bucket = Mock()
+    blob_a = Mock()
+    blob_a.name = "a.csv"
+    bucket.list_blobs.return_value = [blob_a]
+    assert list_bucket_files(bucket) == ["a.csv"]
+    bucket.list_blobs.assert_called_once_with()
+
+
 def test_get_unregistered_csv_files():
     bucket = Mock()
     blob_a = Mock()
@@ -44,7 +54,7 @@ def test_get_unregistered_csv_files():
     blob_extra.name = "folder/extra.csv"
     bucket.list_blobs.return_value = [blob_a, blob_extra]
     cfg = _minimal_config()
-    missing = get_unregistered_csv_files(bucket, "folder", cfg)
+    missing = get_unregistered_csv_files(bucket, cfg, "folder")
     assert missing == ["extra.csv"]
 
 
@@ -64,3 +74,16 @@ def test_delete_bucket_files():
     assert set(blobs.keys()) == {"a.csv", "b.csv"}
     for b in blobs.values():
         b.delete.assert_called_once()
+
+
+def test_get_bucket_files():
+    bucket = Mock()
+    blob = Mock()
+    blob.download_as_bytes.return_value = b"data"
+    bucket.blob.return_value = blob
+
+    result = get_bucket_files(bucket, "a.csv")
+
+    bucket.blob.assert_called_once_with("a.csv")
+    blob.download_as_bytes.assert_called_once_with()
+    assert result == {"a.csv": b"data"}

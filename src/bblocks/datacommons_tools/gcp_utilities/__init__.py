@@ -7,6 +7,7 @@ from bblocks.datacommons_tools.gcp_utilities.storage import (
     list_bucket_files,
     get_unregistered_csv_files,
     delete_bucket_files,
+    get_bucket_files,
 )
 from bblocks.datacommons_tools.gcp_utilities.settings import get_kg_settings, KGSettings
 
@@ -17,6 +18,7 @@ __all__ = [
     "list_bucket_files",
     "get_unregistered_csv_files",
     "delete_bucket_files",
+    "get_bucket_files",
     "get_kg_settings",
     "KGSettings",
 ]
