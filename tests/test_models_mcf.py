@@ -2,22 +2,21 @@ import pytest
 
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes, MCFNode
 
+
 def test_mcfnode_mcf_output_order_and_formatting():
     """
     Ensures MCFNode.mcf outputs properties sorted alphabetically
     after 'Node:' line.
     """
     node = MCFNode(
-        Node="TestNode",
-        name='"My Name"',
-        typeOf="TypeA",
-        description='"Desc"',
+        Node="TestNode", name='"My Name"', typeOf="TypeA", description='"Desc"'
     )
     lines = node.mcf.strip().splitlines()
     assert lines[0] == "Node: TestNode"
-    assert lines[1] == 'description: "Desc"'
-    assert lines[2] == 'name: "My Name"'
-    assert lines[3] == "typeOf: TypeA"
+    assert lines[1] == 'name: "My Name"'
+    assert lines[2] == "typeOf: TypeA"
+    assert lines[3] == 'description: "Desc"'
+
 
 def test_mcfnodes_add_override_and_remove():
     """

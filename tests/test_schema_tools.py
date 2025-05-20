@@ -68,9 +68,9 @@ def test_single_level_group():
     ), "Should create exactly one group node for single-level path"
 
     group = groups[0]
-    assert group.Node == "dcid: example.org/g/category"
+    assert group.Node == "dcid:example.org/g/category"
     assert group.name == "Category"
-    assert group.specializationOf == "dcid: dc/g/Root"
+    assert group.specializationOf == "dcid:dc/g/Root"
 
     statvars = get_statvar_nodes(result)
     assert statvars[0].memberOf == group.Node
@@ -87,13 +87,13 @@ def test_multi_level_group():
     slug_map = {g.Node.split("/")[-1]: g for g in groups}
 
     # Check each group's parent linkage
-    assert slug_map["A"].specializationOf == "dcid: dc/g/Root"
-    assert slug_map["B"].specializationOf == "dcid: ns/g/A"
-    assert slug_map["C"].specializationOf == "dcid: ns/g/B"
+    assert slug_map["A"].specializationOf == "dcid:dc/g/Root"
+    assert slug_map["B"].specializationOf == "dcid:ns/g/A"
+    assert slug_map["C"].specializationOf == "dcid:ns/g/B"
 
     # Check StatVar points to deepest
     statvars = get_statvar_nodes(result)
-    assert statvars[0].memberOf == "dcid: ns/g/C"
+    assert statvars[0].memberOf == "dcid:ns/g/C"
 
 
 def test_duplicate_paths_do_not_create_duplicates():
@@ -106,6 +106,6 @@ def test_duplicate_paths_do_not_create_duplicates():
     # Expect three unique group nodes: X, Y, Z
     assert len(groups) == 3
     slugs = sorted(g.Node for g in groups)
-    assert "dcid: ns2/g/X" in slugs
-    assert "dcid: ns2/g/Y" in slugs
-    assert "dcid: ns2/g/Z" in slugs
+    assert "dcid:ns2/g/X" in slugs
+    assert "dcid:ns2/g/Y" in slugs
+    assert "dcid:ns2/g/Z" in slugs

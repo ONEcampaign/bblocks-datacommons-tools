@@ -1,8 +1,8 @@
 Node: X/foo
+name: "Some Name"
+typeOf: dcid:StatisticalVariable
 dcid: dcid:foo
 description: "Foo description"
-name: "Some Name"
 provenance: "Some foo provenance"
 shortDisplayName: "F"
 subClassOf: dcid:Parent
-typeOf: dcid:StatisticalVariable

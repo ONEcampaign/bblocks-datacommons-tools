@@ -1,13 +1,13 @@
 Node: foo
+name: "FooVar"
+typeOf: dcid:StatisticalVariable
 dcid: dcid:foo
 description: "A foo var"
-name: "FooVar"
 statType: dcid:measuredValue
-typeOf: dcid:StatisticalVariable
 
 Node: bar
-dcid: dcid:bar
 name: "BarVar"
-statType: dcid:measuredValue
 typeOf: dcid:StatisticalVariable
+dcid: dcid:bar
+statType: dcid:measuredValue
 
