@@ -6,6 +6,7 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
 from bblocks.datacommons_tools.custom_data.schema_tools import (
     csv_metadata_to_nodes,
     build_stat_var_groups_from_strings,
+    to_camelCase,
 )
 
 
@@ -109,3 +110,26 @@ def test_duplicate_paths_do_not_create_duplicates():
     assert "dcid:ns2/g/X" in slugs
     assert "dcid:ns2/g/Y" in slugs
     assert "dcid:ns2/g/Z" in slugs
+
+
+def test_to_camelcase_multi_word():
+    assert (
+        to_camelCase("Official Development Assistance")
+        == "officialDevelopmentAssistance"
+    )
+
+
+def test_to_camelcase_all_uppercase_preserved():
+    assert to_camelCase("ODA") == "ODA"
+    assert to_camelCase("DAC1") == "DAC1"
+
+
+def test_to_camelcase_returns_already_camel():
+    assert to_camelCase("alreadyCamel") == "alreadyCamel"
+
+
+def test_to_camelcase_colon_comma_replacement():
+    assert (
+        to_camelCase("GDP: PPP, Constant 2017 USD")
+        == "gdp_Ppp_Constant2017Usd"
+    )
