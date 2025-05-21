@@ -29,6 +29,13 @@ from bblocks.datacommons_tools.custom_data.schema_tools import (
     csv_metadata_to_nodes,
     build_stat_var_groups_from_strings,
 )
+from bblocks.datacommons_tools.custom_data.config_utils import (
+    merge_configs,
+    iter_config_files,
+    DuplicatePolicy,
+    merge_configs_from_directory,
+)
+from bblocks.datacommons_tools.logger import logger
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 DEFAULT_STATVAR_MCF_NAME: str = "custom_nodes.mcf"
@@ -204,6 +211,28 @@ class CustomDataManager:
             }
 
         self._data = {}
+
+    def __repr__(self) -> str:
+        input_files_count = len(self._config.inputFiles)
+        sources_count = len(self._config.sources)
+        nodes_count = sum(
+            [len(var) for var in [n.nodes for n in self._mcf_nodes.values()] if var]
+        )
+
+        variables_count = len(self._config.variables or {}) + nodes_count
+        dataframes_count = len(self._data)
+
+        include_input_subdirs = self._config.includeInputSubdirs
+        group_statvars = self._config.groupStatVarsByProperty
+
+        return (
+            f"<CustomDataManager config: "
+            f"\n{input_files_count} inputFiles, with {dataframes_count} containing data"
+            f"\n{sources_count} sources"
+            f"\n{variables_count} variables"
+            f"\nflags: includeInputSubdirs={include_input_subdirs}, "
+            f"groupStatVarsByProperty={group_statvars}>"
+        )
 
     def set_includeInputSubdirs(self, set_value: bool) -> CustomDataManager:
         """Set the includeInputSubdirs attribute of the config"""
@@ -869,26 +898,85 @@ class CustomDataManager:
         self._config.validate_config()
         return self
 
-    def __repr__(self) -> str:
-        input_files_count = len(self._config.inputFiles)
-        sources_count = len(self._config.sources)
-        nodes_count = sum(
-            [len(var) for var in [n.nodes for n in self._mcf_nodes.values()] if var]
+    def merge_config(
+        self,
+        config: Config | dict | str | PathLike[str],
+        *,
+        policy: DuplicatePolicy = "error",
+    ) -> CustomDataManager:
+        """Merge ``config`` into the current configuration.
+
+        Args:
+            config: The config to merge. This can be a Config object, a dictionary,
+                or a path to a JSON file.
+            policy: How to resolve collisions. Can be "error", "override", or "ignore".
+
+        """
+
+        if isinstance(config, (str, PathLike)):
+            cfg = Config.from_json(str(config))
+        elif isinstance(config, dict):
+            cfg = Config.model_validate(config)
+        else:
+            cfg = config
+
+        merge_configs(existing=self._config, new=cfg, policy=policy)
+        return self
+
+    def merge_configs_from_directory(
+        self,
+        directory: str | PathLike[str],
+        *,
+        policy: DuplicatePolicy = "error",
+        replace_loaded_config: bool = True,
+    ) -> CustomDataManager:
+        """Merge all config files found under ``directory``. This will recursively
+        search for config files in subdirectories. It will merge them with whatever
+        config is already loaded in the manager.
+
+        Args:
+            directory: The directory to search for config files.
+            policy: How to resolve collisions. Can be "error", "override", or "ignore".
+
+        """
+
+        directory_configs = merge_configs_from_directory(
+            directory=directory, policy=policy
         )
 
-        variables_count = len(self._config.variables or {}) + nodes_count
-        dataframes_count = len(self._data)
+        if replace_loaded_config:
+            self._config = directory_configs
+        else:
+            self.merge_config(directory_configs, policy=policy)
 
-        include_input_subdirs = self._config.includeInputSubdirs
-        group_statvars = self._config.groupStatVarsByProperty
+        return self
 
-        return (
-            f"<CustomDataManager config: "
-            f"\n{input_files_count} inputFiles, with {dataframes_count} containing data"
-            f"\n{sources_count} sources"
-            f"\n{variables_count} variables"
-            f"\nflags: includeInputSubdirs={include_input_subdirs}, "
-            f"groupStatVarsByProperty={group_statvars}>"
+    @classmethod
+    def from_config_files_in_directory(
+        cls,
+        directory: str | PathLike[str],
+        *,
+        policy: DuplicatePolicy = "error",
+        mcf_files: Optional[str | list[str] | list[PathLike[str]]] = None,
+    ) -> CustomDataManager:
+        """Create a manager loading and merging configs from ``directory``. This will
+        recursively search for config files in subdirectories. It will merge them to create
+        a single config. The config will be loaded into the manager.
+
+        Args:
+            directory: The directory to search for config files.
+            policy: How to resolve collisions. Can be "error", "override", or "ignore".
+            mcf_files: Path to one or more MCF files. If not provided, a new MCFNodes object
+                will be created.
+
+        Returns:
+            CustomDataManager: A new instance of the CustomDataManager class with the
+                loaded config and MCF files.
+
+        """
+
+        manager = cls(mcf_files=mcf_files)
+        manager.merge_configs_from_directory(
+            directory, policy=policy, replace_loaded_config=True
         )
-
-    # TODO: add_config method to add a config to the object either from json file, dictionary or another Config object and merge with existing config
+        return manager

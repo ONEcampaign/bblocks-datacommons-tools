@@ -4,6 +4,11 @@ import pytest
 from bblocks.datacommons_tools import CustomDataManager
 from bblocks.datacommons_tools.custom_data.data_management import DEFAULT_GROUP_NAME
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
+from bblocks.datacommons_tools.custom_data.models.data_files import (
+    ImplicitSchemaFile,
+    ObservationProperties,
+)
+from bblocks.datacommons_tools.custom_data.models.sources import Source
 
 
 def test_custom_data_manager_add_provenance_and_override():
@@ -113,11 +118,7 @@ def test_add_explicit_schema_file_without_column_mappings():
     manager.add_provenance("p1", "http://prov", "s1", source_url="http://src")
 
     df = pd.DataFrame({"A": [1]})
-    manager.add_explicit_schema_file(
-        file_name="exp.csv",
-        provenance="p1",
-        data=df,
-    )
+    manager.add_explicit_schema_file(file_name="exp.csv", provenance="p1", data=df)
 
     assert "exp.csv" in manager._config.inputFiles
     mappings = manager._config.inputFiles["exp.csv"].columnMappings
@@ -235,11 +236,7 @@ def test_remove_indicator_and_provenance():
 
     manager.add_variable_to_mcf(Node="sv2", name="Var2", provenance="p1")
     manager.add_variable_to_config(statVar="sv2", name="Var2")
-    manager.add_explicit_schema_file(
-        file_name="b.csv",
-        provenance="p1",
-        data=df,
-    )
+    manager.add_explicit_schema_file(file_name="b.csv", provenance="p1", data=df)
 
     manager.remove_by_provenance("p1")
 
@@ -267,11 +264,7 @@ def test_remove_provenance_and_source_methods():
         entityType="Country",
         observationProperties={"unit": "u"},
     )
-    manager.add_explicit_schema_file(
-        file_name="b.csv",
-        provenance="p2",
-        data=df,
-    )
+    manager.add_explicit_schema_file(file_name="b.csv", provenance="p2", data=df)
 
     manager.remove_provenance("p1")
 
@@ -302,3 +295,60 @@ def test_remove_provenance_and_source_methods():
 
     assert "s1" not in manager2._config.sources
     assert "c.csv" not in manager2._config.inputFiles
+
+
+def _make_cfg(key: str, prov: str, source: str, *, include_subdirs: bool | None = None):
+    input_files = {
+        key: ImplicitSchemaFile(
+            provenance=prov,
+            entityType="Country",
+            observationProperties=ObservationProperties(),
+        )
+    }
+    sources = {source: Source(url="http://src", provenances={prov: "http://p"})}
+    return Config(
+        inputFiles=input_files, sources=sources, includeInputSubdirs=include_subdirs
+    )
+
+
+def test_merge_configs_from_directory(tmp_path):
+    d1 = tmp_path / "one"
+    d1.mkdir()
+    cfg1 = _make_cfg("a.csv", "p1", "s")
+    cfg1.includeInputSubdirs = True
+    (d1 / "config.json").write_text(
+        cfg1.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    d2 = tmp_path / "two"
+    d2.mkdir()
+    cfg2 = _make_cfg("b.csv", "p2", "s")
+    (d2 / "config.json").write_text(
+        cfg2.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    manager = CustomDataManager.from_config_files_in_directory(tmp_path)
+
+    assert set(manager._config.inputFiles.keys()) == {"a.csv", "b.csv"}
+    provs = manager._config.sources["s"].provenances
+    assert set(provs.keys()) == {"p1", "p2"}
+    assert manager._config.includeInputSubdirs is True
+
+
+def test_merge_configs_duplicate_error(tmp_path):
+    d1 = tmp_path / "one"
+    d1.mkdir()
+    cfg1 = _make_cfg("a.csv", "p1", "s")
+    (d1 / "config.json").write_text(
+        cfg1.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    d2 = tmp_path / "two"
+    d2.mkdir()
+    cfg2 = _make_cfg("a.csv", "p2", "s")
+    (d2 / "config.json").write_text(
+        cfg2.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    with pytest.raises(ValueError):
+        CustomDataManager.from_config_files_in_directory(tmp_path)
