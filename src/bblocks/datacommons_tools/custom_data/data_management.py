@@ -647,6 +647,84 @@ class CustomDataManager:
         self._data[file_name] = data
         return self
 
+    def rename_variable(
+        self, old_name: str, new_name: str, *, mcf_file_name: str | None = None
+    ) -> CustomDataManager:
+        """Rename a variable across config and any loaded MCF files."""
+
+        if not self._config.variables or old_name not in self._config.variables:
+            raise ValueError(f"Variable '{old_name}' not found")
+        if new_name in (self._config.variables or {}):
+            raise ValueError(f"Variable '{new_name}' already exists")
+
+        self._config.variables[new_name] = self._config.variables.pop(old_name)
+
+        file_names = (
+            [
+                (
+                    _validate_mcf_file_name(mcf_file_name)
+                    if mcf_file_name is not None
+                    else None
+                )
+            ]
+            if mcf_file_name
+            else self._mcf_nodes.keys()
+        )
+        for name in file_names:
+            nodes = self._mcf_nodes.get(name)
+            if not nodes:
+                continue
+            for idx, node in enumerate(nodes.nodes):
+                if node.Node == old_name:
+                    nodes.nodes[idx].Node = new_name
+
+        return self
+
+    def rename_provenance(self, old_name: str, new_name: str) -> CustomDataManager:
+        """Rename a provenance and update all references."""
+
+        source = None
+        for src in self._config.sources.values():
+            if old_name in src.provenances:
+                source = src
+                break
+
+        if source is None:
+            raise ValueError(f"Provenance '{old_name}' not found")
+        if new_name in source.provenances:
+            raise ValueError(f"Provenance '{new_name}' already exists for source")
+
+        source.provenances[new_name] = source.provenances.pop(old_name)
+
+        for info in self._config.inputFiles.values():
+            if info.provenance == old_name:
+                info.provenance = new_name
+
+        if self._config.variables:
+            for var in self._config.variables.values():
+                if var.properties and var.properties.get("provenance") == old_name:
+                    var.properties["provenance"] = new_name
+
+        for nodes in self._mcf_nodes.values():
+            for node in nodes.nodes:
+                prov = getattr(node, "provenance", None)
+                if prov in {old_name, f'"{old_name}"'}:
+                    node.provenance = f'"{new_name}"'
+
+        return self
+
+    def rename_source(self, old_name: str, new_name: str) -> CustomDataManager:
+        """Rename a source key in the config."""
+
+        if old_name not in self._config.sources:
+            raise ValueError(f"Source '{old_name}' not found")
+        if new_name in self._config.sources:
+            raise ValueError(f"Source '{new_name}' already exists")
+
+        self._config.sources[new_name] = self._config.sources.pop(old_name)
+
+        return self
+
     def remove_indicator(
         self, indicator_id: str, *, mcf_file_name: str | None = None
     ) -> CustomDataManager:
