@@ -3,10 +3,12 @@ from typing import Optional, List, Dict, Literal
 
 from pydantic import BaseModel, ConfigDict, constr
 
+
 from bblocks.datacommons_tools.custom_data.models.common import (
-    StrOrListStr,
     QuotedStrListOrStr,
+    StrOrListStr,
 )
+
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
 
 

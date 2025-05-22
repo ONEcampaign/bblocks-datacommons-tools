@@ -44,10 +44,3 @@ def test_rows_to_stat_var_nodes_parses_spreadsheet_lists_no_quotes():
     nodes = _rows_to_stat_var_nodes(df)
     mcf = nodes.nodes[0].mcf
     assert "memberOf: dcid:oneId, dcid:twoId" in mcf
-
-
-def test_rows_to_stat_var_nodes_respects_quoted_commas():
-    df = pd.read_clipboard()
-    nodes = _rows_to_stat_var_nodes(df)
-    mcf = nodes.nodes[0].mcf
-    assert 'searchDescription: "Single, part"' in mcf
