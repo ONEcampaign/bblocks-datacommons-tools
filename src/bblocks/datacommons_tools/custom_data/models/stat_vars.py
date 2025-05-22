@@ -64,21 +64,25 @@ class StatVarMCFNode(MCFNode):
         statType: Type of statistical measurement represented by the variable.
         typeOf: Fixed type indicating this is a StatisticalVariable.
         memberOf: Optional DCID indicating group membership.
+        relevantVariable: Optional DCID of a related variable.
         searchDescription: Optional descriptions enhancing NL search capabilities.
         populationType: Optional DCID of the population entity type being measured.
         measuredProperty: Optional DCID of the property being measured.
         measurementQualifier: Optional qualifier describing measurement specifics.
         measurementDenominator: Optional denominator for ratio-type statistical measures.
+        footnote: Optional footnotes providing additional context or information.
     """
 
     statType: Optional[StatType] = StatType.MEASURED_VALUE
     typeOf: Literal["dcid:StatisticalVariable"] = "dcid:StatisticalVariable"
     memberOf: Optional[StrOrListStr] = None
+    relevantVariable: Optional[StrOrListStr] = None
     searchDescription: Optional[QuotedStrListOrStr] = None
     populationType: Optional[str] = None
     measuredProperty: Optional[str] = None
     measurementQualifier: Optional[str] = None
     measurementDenominator: Optional[str] = None
+    footnote: Optional[QuotedStrListOrStr] = None
 
 
 class StatVarGroupMCFNode(MCFNode):
@@ -102,3 +106,27 @@ class StatVarGroupMCFNode(MCFNode):
     Node: constr(strip_whitespace=True, pattern=r".*g/.*")
     typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarGroup"
     specializationOf: constr(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
+
+
+class StatVarPeerGroupMCFNode(MCFNode):
+    """Represents a Statistical Variable Peer Group node in Metadata Common Format (MCF).
+    A StatVarPeerGroup represents a group of StatisticalVariable nodes that are comparable peers.
+
+    Attributes:
+        # Additional Attributes specific to StatVarPeerGroup
+        Node: Node identifier, must contain '/svpg'.
+        typeOf: Fixed type indicating this is a StatVarPeerGroup.
+        member: DCID of the parent group, must start with 'dcid:' and contain 'g/'.
+
+         # Inherits from MCFNode
+        name: The human-readable name for the Node.
+        dcid: Optional DCID for uniquely identifying the Node.
+        description: Optional human-readable description.
+        provenance: Optional provenance information.
+        shortDisplayName: Optional human-readable short name for display.
+        subClassOf: Optional DCID indicating the 'parent' Node class.
+    """
+
+    Node: constr(strip_whitespace=True, pattern=r".*svpg/.*")
+    typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarPeerGroup"
+    member: StrOrListStr
