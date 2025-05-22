@@ -650,7 +650,17 @@ class CustomDataManager:
     def rename_variable(
         self, old_name: str, new_name: str, *, mcf_file_name: str | None = None
     ) -> CustomDataManager:
-        """Rename a variable across config and any loaded MCF files."""
+        """Rename a variable across config and any loaded MCF files.
+
+        Args:
+            old_name: The name of the variable to rename.
+            new_name: The new name for the variable.
+            mcf_file_name: Optional name of the MCF file from which to rename the variable.
+                If omitted, all managed MCF files are searched.
+        Raises:
+            ValueError: If the variable is not found in the config or MCF files,
+
+        """
 
         if not self._config.variables or old_name not in self._config.variables:
             raise ValueError(f"Variable '{old_name}' not found")
@@ -681,7 +691,19 @@ class CustomDataManager:
         return self
 
     def rename_provenance(self, old_name: str, new_name: str) -> CustomDataManager:
-        """Rename a provenance and update all references."""
+        """Rename a provenance and update all references.
+
+        Args:
+            old_name: The name of the provenance to rename.
+            new_name: The new name for the provenance.
+        Raises:
+            ValueError: If the provenance is not found in the config or MCF files,
+                or if the new name already exists.
+        Raises:
+            ValueError: If the provenance is not found in the config or MCF files,
+                or if the new name already exists.
+
+        """
 
         source = None
         for src in self._config.sources.values():
@@ -714,7 +736,16 @@ class CustomDataManager:
         return self
 
     def rename_source(self, old_name: str, new_name: str) -> CustomDataManager:
-        """Rename a source key in the config."""
+        """Rename a source key in the config.
+
+        Args:
+            old_name: The name of the source to rename.
+            new_name: The new name for the source.
+        Raises:
+            ValueError: If the source is not found in the config or MCF files,
+                or if the new name already exists.
+
+        """
 
         if old_name not in self._config.sources:
             raise ValueError(f"Source '{old_name}' not found")
