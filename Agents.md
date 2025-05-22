@@ -10,6 +10,7 @@ be accessed as import bblocks.datacommons_tools
 - Format all code with black
 - Follow Google Python style but align with the code style and preferences already established for this repo.
 - This repo uses Google-style docstrings. All functions and methods should have docstrings.
+- All new scripts you create should have a short description at the top of the file.
 
 ## Testing Instructions
 - The tests are inside the tests folder. From root you would therefore call `poetry run pytest ./tests`
