@@ -30,5 +30,5 @@ class TopicMCFNode(MCFNode):
     """
 
     Node: constr(strip_whitespace=True, pattern=r".*topic/.*")
-    typeOf: Literal["dcid:StatVarGroup"] = "dcid:Topic"
+    typeOf: Literal["dcid:Topic"] = "dcid:Topic"
     relevantVariable: StrOrListStr

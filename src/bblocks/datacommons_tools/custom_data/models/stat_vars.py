@@ -128,5 +128,5 @@ class StatVarPeerGroupMCFNode(MCFNode):
     """
 
     Node: constr(strip_whitespace=True, pattern=r".*svpg/.*")
-    typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarPeerGroup"
+    typeOf: Literal["dcid:StatVarPeerGroup"] = "dcid:StatVarPeerGroup"
     member: StrOrListStr
