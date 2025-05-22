@@ -352,3 +352,56 @@ def test_merge_configs_duplicate_error(tmp_path):
 
     with pytest.raises(ValueError):
         CustomDataManager.from_config_files_in_directory(tmp_path)
+
+
+def test_rename_provenance_updates_all_references():
+    manager = CustomDataManager()
+    manager.add_provenance("p1", "http://prov1", "s1", source_url="http://src")
+
+    df = pd.DataFrame({"A": [1]})
+    manager.add_implicit_schema_file(
+        file_name="a.csv",
+        provenance="p1",
+        data=df,
+        entityType="Country",
+        observationProperties={"unit": "u"},
+    )
+    manager.add_variable_to_config("sv1", name="Var", properties={"provenance": "p1"})
+    manager.add_variable_to_mcf(Node="sv1", name="Var", provenance="p1")
+
+    manager.rename_provenance("p1", "pX")
+
+    assert "pX" in manager._config.sources["s1"].provenances
+    assert manager._config.inputFiles["a.csv"].provenance == "pX"
+    assert manager._config.variables["sv1"].properties["provenance"] == "pX"
+    for nodes in manager._mcf_nodes.values():
+        assert any(getattr(n, "provenance", None) == '"pX"' for n in nodes.nodes)
+
+    with pytest.raises(ValueError):
+        manager.rename_provenance("pX", "pX")
+
+
+def test_rename_variable_and_source_methods():
+    manager = CustomDataManager()
+    manager.add_provenance("p1", "http://prov1", "s1", source_url="http://src")
+    manager.add_variable_to_config("v1", name="Var1")
+    manager.add_variable_to_mcf(Node="v1", name="Var1")
+
+    manager.rename_variable("v1", "v2")
+    assert "v2" in manager._config.variables
+    for nodes in manager._mcf_nodes.values():
+        assert any(n.Node == "v2" for n in nodes.nodes)
+
+    manager.add_variable_to_config("v3", name="Var3")
+    with pytest.raises(ValueError):
+        manager.rename_variable("v2", "v3")
+    with pytest.raises(ValueError):
+        manager.rename_variable("missing", "v4")
+
+    manager.rename_source("s1", "s2")
+    assert "s2" in manager._config.sources and "s1" not in manager._config.sources
+
+    with pytest.raises(ValueError):
+        manager.rename_source("unknown", "x")
+    with pytest.raises(ValueError):
+        manager.rename_source("s2", "s2")
