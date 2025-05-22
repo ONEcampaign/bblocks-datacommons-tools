@@ -39,6 +39,27 @@ def mcf_quoted_str(value: str | list[str] | None) -> str | None:
     return _ensure_quoted(value)
 
 
+def mcf_str(value: str | list[str] | None) -> str | None:
+    """Serialise a string or list of strings without adding quotes.
+
+    Args:
+        value: A string, list of strings, or None to serialise.
+
+    Returns:
+        A comma-delimited string or None if input is None.
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, list):
+        if len(value) < 2:
+            return str(value[0])
+
+        return ", ".join(str(item) for item in value)
+
+    return value
+
+
 def parse_str_or_list(value: str | list[str]) -> str | list[str]:
     """Return a list when a comma-delimited string is provided."""
     if isinstance(value, str):
@@ -60,3 +81,11 @@ QuotedStrListOrStr = Annotated[
     PlainSerializer(mcf_quoted_str, return_type=str | None, when_used="always"),
 ]
 """Accepts a string or list and serialises to quoted MCF format."""
+
+
+StrOrListStr = Annotated[
+    str | list[str],
+    PlainValidator(parse_str_or_list),
+    PlainSerializer(mcf_str, return_type=str | None, when_used="always"),
+]
+"""Accepts a string or list and serialises to a comma-separated string."""
