@@ -1,6 +1,6 @@
 from bblocks.datacommons_tools.custom_data.models.common import (
     _ensure_quoted,
-    mcf_quoted_str,
+    mcf_quoted_str, parse_str_or_list,
 )
 
 
@@ -25,3 +25,7 @@ def test_mcf_quoted_str_with_single_and_multiple_items():
     assert multi == '"a", "b", "c"'
     # None input
     assert mcf_quoted_str(None) is None
+
+def test_parse_str_or_list_honours_quotes():
+    assert parse_str_or_list('"A, B"') == "A, B"
+    assert parse_str_or_list('"A, B", C') == ["A, B", "C"]

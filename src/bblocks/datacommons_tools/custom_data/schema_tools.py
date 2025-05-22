@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+import json
 import re
 from pathlib import Path
 from typing import Any, Literal
@@ -11,6 +13,22 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
     StatVarMCFNode,
     StatVarGroupMCFNode,
 )
+
+
+def _parse_maybe_list(s: str | Any) -> str | list[str]:
+    """If s (after stripping) starts with '[' and is valid Python literal,
+    return the evaluated list. Otherwise, return s unchanged."""
+    if not isinstance(s, str):
+        return s
+    s_stripped = s.strip()
+    if s_stripped.startswith("["):
+        try:
+            return ast.literal_eval(s_stripped)
+        except (ValueError, SyntaxError):
+            # Not a valid Python literal — fall back to original string
+            return s
+    else:
+        return s
 
 
 def _rows_to_stat_var_nodes(
@@ -39,7 +57,11 @@ def _rows_to_stat_var_nodes(
     }
 
     for record in records:
-        record = {k: v for k, v in record.items() if not pd.isna(v) and v != ""}
+        record = {
+            k: _parse_maybe_list(v)
+            for k, v in record.items()
+            if not pd.isna(v) and v != ""
+        }
         nodes.append(constructor[node_type](**record))
 
     return MCFNodes(nodes=nodes)

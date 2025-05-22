@@ -1,6 +1,7 @@
+import csv
 from typing import Annotated
 
-from pydantic import PlainSerializer
+from pydantic import PlainSerializer, PlainValidator
 
 
 def _ensure_quoted(s: str) -> str:
@@ -38,13 +39,24 @@ def mcf_quoted_str(value: str | list[str] | None) -> str | None:
     return _ensure_quoted(value)
 
 
+def parse_str_or_list(value: str | list[str]) -> str | list[str]:
+    """Return a list when a comma-delimited string is provided."""
+    if isinstance(value, str):
+        parsed = next(csv.reader([value], skipinitialspace=True))
+        parsed = [v.strip() for v in parsed]
+        return parsed[0] if len(parsed) == 1 else parsed
+    return value
+
+
 QuotedStr = Annotated[
     str, PlainSerializer(_ensure_quoted, return_type=str | None, when_used="always")
 ]
 """A string annotated for serialisation into an MCF-compatible quoted format."""
 
-QuotedStrList = Annotated[
-    list[str],
+
+QuotedStrListOrStr = Annotated[
+    str | list[str],
+    PlainValidator(parse_str_or_list),
     PlainSerializer(mcf_quoted_str, return_type=str | None, when_used="always"),
 ]
-"""A list of strings annotated for serialisation into an MCF-compatible quoted format."""
+"""Accepts a string or list and serialises to quoted MCF format."""

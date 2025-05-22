@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Literal
 
 from pydantic import BaseModel, ConfigDict, constr
 
-from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, QuotedStrList
+from bblocks.datacommons_tools.custom_data.models.common import QuotedStrListOrStr
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
 
 
@@ -69,7 +69,7 @@ class StatVarMCFNode(MCFNode):
     statType: Optional[StatType] = StatType.MEASURED_VALUE
     typeOf: Literal["dcid:StatisticalVariable"] = "dcid:StatisticalVariable"
     memberOf: Optional[str] = None
-    searchDescription: Optional[QuotedStr | QuotedStrList] = None
+    searchDescription: Optional[QuotedStrListOrStr] = None
     populationType: Optional[str] = None
     measuredProperty: Optional[str] = None
     measurementQualifier: Optional[str] = None
