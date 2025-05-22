@@ -39,12 +39,15 @@ def test_rows_to_stat_var_nodes_parses_spreadsheet_lists():
 
 def test_rows_to_stat_var_nodes_parses_spreadsheet_lists_no_quotes():
     df = pd.DataFrame(
-        {
-            "Node": ["n3"],
-            "name": ["Var"],
-            "memberOf": ['["dcid:oneId", "dcid:twoId"]'],
-        }
+        {"Node": ["n3"], "name": ["Var"], "memberOf": ['["dcid:oneId", "dcid:twoId"]']}
     )
     nodes = _rows_to_stat_var_nodes(df)
     mcf = nodes.nodes[0].mcf
-    assert 'memberOf: dcid:oneId, dcid:twoId' in mcf
+    assert "memberOf: dcid:oneId, dcid:twoId" in mcf
+
+
+def test_rows_to_stat_var_nodes_respects_quoted_commas():
+    df = pd.read_clipboard()
+    nodes = _rows_to_stat_var_nodes(df)
+    mcf = nodes.nodes[0].mcf
+    assert 'searchDescription: "Single, part"' in mcf
