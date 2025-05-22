@@ -910,6 +910,10 @@ class CustomDataManager:
             config: The config to merge. This can be a Config object, a dictionary,
                 or a path to a JSON file.
             policy: How to resolve collisions. Can be "error", "override", or "ignore".
+                Defaults to "error". If "error", an error is raised if there are any
+                collisions. If "override", the new config will override the existing
+                config. If "ignore", the new config's value will be ignored if there are any
+                collisions.
 
         """
 
@@ -937,6 +941,11 @@ class CustomDataManager:
         Args:
             directory: The directory to search for config files.
             policy: How to resolve collisions. Can be "error", "override", or "ignore".
+            How to resolve collisions. Can be "error", "override", or "ignore".
+                Defaults to "error". If "error", an error is raised if there are any
+                collisions. If "override", the new config will override the existing
+                config. If "ignore", the new config's value will be ignored if there are any
+                collisions.
 
         """
 
@@ -980,3 +989,7 @@ class CustomDataManager:
             directory, policy=policy, replace_loaded_config=True
         )
         return manager
+
+#%%
+
+#%%
