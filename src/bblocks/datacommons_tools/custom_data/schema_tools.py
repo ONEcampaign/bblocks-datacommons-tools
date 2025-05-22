@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal
 
@@ -12,7 +13,19 @@ from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes, MCFNode
 from bblocks.datacommons_tools.custom_data.models.stat_vars import (
     StatVarMCFNode,
     StatVarGroupMCFNode,
+    StatVarPeerGroupMCFNode,
 )
+from bblocks.datacommons_tools.custom_data.models.topics import TopicMCFNode
+
+
+class NodeTypes(StrEnum):
+    """Enumeration of node types used in Data Commons."""
+
+    NODE = "Node"
+    STAT_VAR = "StatVar"
+    STAT_VAR_GROUP = "StatVarGroup"
+    TOPIC = "Topic"
+    STAT_VAR_PEER_GROUP = "StatVarPeerGroup"
 
 
 def _parse_maybe_list(s: str | Any) -> str | list[str]:
@@ -32,10 +45,9 @@ def _parse_maybe_list(s: str | Any) -> str | list[str]:
 
 
 def _rows_to_stat_var_nodes(
-    data: pd.DataFrame,
-    node_type: Literal["Node", "StatVar", "StatVarGroup"] = "StatVar",
+    data: pd.DataFrame, node_type: str | NodeTypes = "StatVar"
 ) -> MCFNodes[StatVarMCFNode]:
-    """Convert a DataFrame into a collection of ``StatVarMCFNode`` objects.
+    """Convert a DataFrame into a collection of Node objects (of the type selected).
 
     Empty/NA values are removed from each row before constructing the node.
 
@@ -44,8 +56,13 @@ def _rows_to_stat_var_nodes(
         node_type: The type of node to create. Default is "StatVar".
 
     Returns:
-        A ``Nodes`` container with one ``StatVarMCFNode`` per row.
+        A ``Nodes`` container with one Node of the selected type per row.
     """
+
+    if isinstance(node_type, str):
+        node_type = NodeTypes(node_type)
+
+    node_type = str(node_type)
 
     records = data.to_dict(orient="records")
     nodes = []
@@ -54,6 +71,8 @@ def _rows_to_stat_var_nodes(
         "Node": MCFNode,
         "StatVar": StatVarMCFNode,
         "StatVarGroup": StatVarGroupMCFNode,
+        "Topic": TopicMCFNode,
+        "StatVarPeerGroup": StatVarPeerGroupMCFNode,
     }
 
     for record in records:

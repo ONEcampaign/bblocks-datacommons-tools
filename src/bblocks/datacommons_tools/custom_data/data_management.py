@@ -934,9 +934,11 @@ class CustomDataManager:
         policy: DuplicatePolicy = "error",
         replace_loaded_config: bool = True,
     ) -> CustomDataManager:
-        """Merge all config files found under ``directory``. This will recursively
-        search for config files in subdirectories. It will merge them with whatever
-        config is already loaded in the manager.
+        """Merge all config files in a directory and its subdirectories
+
+        This method will recursively search for config files in a directory and its
+        subdirectories (to a depth of?) and merge them with the config already in the manager.
+        If no config exists in the manager, it will be created from the merged config files.
 
         Args:
             directory: The directory to search for config files.
@@ -989,7 +991,3 @@ class CustomDataManager:
             directory, policy=policy, replace_loaded_config=True
         )
         return manager
-
-#%%
-
-#%%

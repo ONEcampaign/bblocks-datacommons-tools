@@ -1,3 +1,5 @@
+from pydantic import BaseModel
+
 from bblocks.datacommons_tools.custom_data.models.common import (
     _ensure_quoted,
     mcf_quoted_str,
@@ -5,7 +7,6 @@ from bblocks.datacommons_tools.custom_data.models.common import (
     parse_str_or_list,
     StrOrListStr,
 )
-from pydantic import BaseModel
 
 
 def test_ensure_quoted_handles_quotes_and_whitespace():
@@ -32,11 +33,6 @@ def test_mcf_quoted_str_with_single_and_multiple_items():
     assert mcf_quoted_str(None) is None
 
 
-def test_parse_str_or_list_honours_quotes():
-    assert parse_str_or_list('"A, B"') == "A, B"
-    assert parse_str_or_list('"A, B", C') == ["A, B", "C"]
-
-
 def test_mcf_str_with_single_and_multiple_items():
     assert mcf_str("abc") == "abc"
     assert mcf_str(["x"]) == "x"
@@ -55,3 +51,8 @@ def test_str_or_list_str_annotation_serialization():
 
     d2 = Dummy(field=["x", "y"])
     assert d2.model_dump()["field"] == "x, y"
+
+
+def test_parse_str_or_list_honours_quotes():
+    assert parse_str_or_list('"A, B"') == "A, B"
+    assert parse_str_or_list('"A, B", C') == ["A, B", "C"]
