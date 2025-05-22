@@ -9,6 +9,11 @@ from typing import Optional, Dict, List, Any
 import pandas as pd
 from pydantic import HttpUrl
 
+from bblocks.datacommons_tools.custom_data.config_utils import (
+    merge_configs,
+    DuplicatePolicy,
+    merge_configs_from_directory,
+)
 from bblocks.datacommons_tools.custom_data.models.config_file import Config
 from bblocks.datacommons_tools.custom_data.models.data_files import (
     ObservationProperties,
@@ -29,13 +34,6 @@ from bblocks.datacommons_tools.custom_data.schema_tools import (
     csv_metadata_to_nodes,
     build_stat_var_groups_from_strings,
 )
-from bblocks.datacommons_tools.custom_data.config_utils import (
-    merge_configs,
-    iter_config_files,
-    DuplicatePolicy,
-    merge_configs_from_directory,
-)
-from bblocks.datacommons_tools.logger import logger
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
 DEFAULT_STATVAR_MCF_NAME: str = "custom_nodes.mcf"
