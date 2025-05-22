@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from bblocks.datacommons_tools.custom_data.models.common import QuotedStr
+from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, StrOrListStr
 
 
 class MCFNode(BaseModel):
@@ -30,7 +30,7 @@ class MCFNode(BaseModel):
     description: Optional[QuotedStr] = None
     provenance: Optional[QuotedStr] = None
     shortDisplayName: Optional[QuotedStr] = None
-    subClassOf: Optional[str] = None
+    subClassOf: Optional[StrOrListStr] = None
 
     # Allow extra fields since MCF can have arbitrary properties and this
     # class is not comprehensive of all possible MCF properties.
