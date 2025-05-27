@@ -7,7 +7,7 @@ from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
 
 
 class TopicMCFNode(MCFNode):
-    """Represents a Topic node in Metadata Common Format (MCF).
+    """Represents a Topic node as MCF Nodes.
     A Topic represents a broad topic in the real-world such as economy, poverty,
     crime, etc. Typically used to associated variables (StatisticalVariable)
     related to a common concept.

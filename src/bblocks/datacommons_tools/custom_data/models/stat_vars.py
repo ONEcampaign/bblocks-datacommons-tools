@@ -48,7 +48,7 @@ class Variable(BaseModel):
 
 
 class StatVarMCFNode(MCFNode):
-    """Represents a Statistical Variable node in Metadata Common Format (MCF).
+    """Represents a Statistical Variable node in MCF.
 
     Attributes:
         # Inherited from MCFNode
@@ -86,7 +86,7 @@ class StatVarMCFNode(MCFNode):
 
 
 class StatVarGroupMCFNode(MCFNode):
-    """Represents a Statistical Variable Group node in Metadata Common Format (MCF).
+    """Represents a Statistical Variable Group node in MCF.
 
     Attributes:
         # Additional Attributes specific to StatVarGroup
@@ -109,7 +109,7 @@ class StatVarGroupMCFNode(MCFNode):
 
 
 class StatVarPeerGroupMCFNode(MCFNode):
-    """Represents a Statistical Variable Peer Group node in Metadata Common Format (MCF).
+    """Represents a Statistical Variable Peer Group node in MCF.
     A StatVarPeerGroup represents a group of StatisticalVariable nodes that are comparable peers.
 
     Attributes:
