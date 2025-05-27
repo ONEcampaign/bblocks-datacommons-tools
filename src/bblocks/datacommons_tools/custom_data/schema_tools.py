@@ -4,11 +4,13 @@ import ast
 import json
 import re
 from enum import StrEnum
+from os import PathLike
 from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
 
+from bblocks.datacommons_tools.custom_data.models.data_files import MCFFileName
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNodes, MCFNode
 from bblocks.datacommons_tools.custom_data.models.stat_vars import (
     StatVarMCFNode,
@@ -86,46 +88,6 @@ def _rows_to_stat_var_nodes(
     return MCFNodes(nodes=nodes)
 
 
-def csv_metadata_to_nodes(
-    file_path: str | Path,
-    *,
-    node_type: Literal["Node", "StatVar", "StatVarGroup"] = "StatVar",
-    column_to_property_mapping: dict[str, str] = None,
-    csv_options: dict[str, Any] = None,
-    ignore_columns: list[str] = None,
-) -> MCFNodes[StatVarMCFNode]:
-    """Read a CSV of StatVar metadata and return the corresponding MCF StatVar nodes.
-
-    Args:
-        file_path: Path to the CSV file.
-        node_type: The type of node to create. Default is "StatVar".
-        column_to_property_mapping: Optional map from CSV column names to
-            ``StatVarMCFNode`` attribute names.
-        csv_options: Extra keyword arguments forwarded verbatim to
-            ``pandas.read_csv``.
-        ignore_columns: Optional list of columns to ignore when reading the CSV.
-
-    Returns:
-        A ``Nodes`` container populated with ``StatVarMCFNode`` objects.
-    """
-
-    if column_to_property_mapping is None:
-        column_to_property_mapping = {}
-
-    if csv_options is None:
-        csv_options = {}
-
-    if ignore_columns is None:
-        ignore_columns = []
-
-    return (
-        pd.read_csv(file_path, **csv_options)
-        .drop(columns=ignore_columns)
-        .rename(columns=column_to_property_mapping)
-        .pipe(_rows_to_stat_var_nodes, node_type=node_type)
-    )
-
-
 def to_camelCase(segment: str) -> str:
     """
     Turn a segment like 'Official Development Assistance' into 'officialDevelopmentAssistance'.
@@ -201,3 +163,89 @@ def build_stat_var_groups_from_strings(stat_vars, *, groups_namespace: str):
     stat_vars.nodes.extend(group_nodes)
 
     return stat_vars
+
+
+def csv_metadata_to_nodes(
+    file_path: str | Path,
+    *,
+    node_type: NodeTypes | str = "StatVar",
+    column_to_property_mapping: dict[str, str] = None,
+    csv_options: dict[str, Any] = None,
+    ignore_columns: list[str] = None,
+) -> MCFNodes[StatVarMCFNode]:
+    """Read a CSV of StatVar metadata and return the corresponding MCF StatVar nodes.
+
+    Args:
+        file_path: Path to the CSV file.
+        node_type: The type of node to create. Default is "StatVar".
+        column_to_property_mapping: Optional map from CSV column names to
+            ``StatVarMCFNode`` attribute names.
+        csv_options: Extra keyword arguments forwarded verbatim to
+            ``pandas.read_csv``.
+        ignore_columns: Optional list of columns to ignore when reading the CSV.
+
+    Returns:
+        A ``Nodes`` container populated with ``StatVarMCFNode`` objects.
+    """
+
+    if column_to_property_mapping is None:
+        column_to_property_mapping = {}
+
+    if csv_options is None:
+        csv_options = {}
+
+    if ignore_columns is None:
+        ignore_columns = []
+
+    return (
+        pd.read_csv(file_path, **csv_options)
+        .drop(columns=ignore_columns)
+        .rename(columns=column_to_property_mapping)
+        .pipe(_rows_to_stat_var_nodes, node_type=node_type)
+    )
+
+
+def validate_mcf_file_name(file_name: str | MCFFileName) -> str:
+    name = (
+        MCFFileName(file_name=file_name).file_name
+        if isinstance(file_name, str)
+        else file_name
+    )
+    return name
+
+
+def csv_metadata_to_mfc_file(
+    csv_path: str | PathLike[str],
+    mcf_path: str | PathLike[str],
+    node_type: NodeTypes | str,
+    *,
+    column_to_property_mapping: dict[str, str] = None,
+    csv_options: dict[str, Any] = None,
+    ignore_columns: list[str] = None,
+    override: bool = False,
+):
+    """Convert a CSV of Node metadata to an MCF file.
+
+    Args:
+        csv_path: Path to the input CSV file.
+        mcf_path: Path to write the generated MCF file.
+        node_type: The type of node to create (e.g., "StatVar", "StatVarGroup").
+        column_to_property_mapping: Optional mapping from CSV columns to MCF properties.
+        csv_options: Extra options for reading the CSV file.
+        ignore_columns: List of columns to ignore when reading the CSV.
+        override: If True, overwrite the output file if it exists.
+
+    """
+
+    mcf_path = Path(mcf_path)
+    validate_mcf_file_name(mcf_path.name)
+
+    nodes = csv_metadata_to_nodes(
+        file_path=csv_path,
+        node_type=node_type,
+        column_to_property_mapping=column_to_property_mapping,
+        csv_options=csv_options,
+        ignore_columns=ignore_columns,
+    )
+
+    nodes.export_to_mcf_file(file_path=mcf_path, override=override)

@@ -18,6 +18,9 @@ dependencies = [
     "google-cloud-run (>=0.10.17,<0.11.0)",
 ]
 
+[project.scripts]
+bblocks-dc-tools = "bblocks.datacommons_tools.cli:main"
+
 [tool.poetry]
 packages = [{include = "bblocks", from = "src"}]
 

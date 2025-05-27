@@ -10,7 +10,7 @@ from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, StrOr
 
 
 class MCFNode(BaseModel):
-    """Represents a general node for Metadata Common Format (MCF).
+    """Represents a general node for MCF.
 
     Attributes:
         Node: Identifier for the Node.

@@ -32,7 +32,7 @@ from bblocks.datacommons_tools.custom_data.models.stat_vars import (
 )
 from bblocks.datacommons_tools.custom_data.schema_tools import (
     csv_metadata_to_nodes,
-    build_stat_var_groups_from_strings,
+    build_stat_var_groups_from_strings, validate_mcf_file_name,
 )
 
 DC_DOCS_URL = "https://docs.datacommons.org/custom_dc/custom_data.html"
@@ -57,15 +57,6 @@ def _parse_kwargs_into_properties(locals_dict: Dict[str, str | dict]) -> Dict[st
             props.update(additional)
 
     return props
-
-
-def _validate_mcf_file_name(file_name: str | MCFFileName) -> str:
-    name = (
-        MCFFileName(file_name=file_name).file_name
-        if isinstance(file_name, str)
-        else file_name
-    )
-    return name
 
 
 class CustomDataManager:
@@ -345,7 +336,7 @@ class CustomDataManager:
         node = StatVarMCFNode(**props)
 
         # add the node to the MCF file
-        name = _validate_mcf_file_name(mcf_file_name)
+        name = validate_mcf_file_name(mcf_file_name)
         self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
 
         return self
@@ -391,7 +382,7 @@ class CustomDataManager:
         node = StatVarGroupMCFNode(**props)
 
         # add the node to the MCF file
-        name = _validate_mcf_file_name(mcf_file_name)
+        name = validate_mcf_file_name(mcf_file_name)
         self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
         return self
 
@@ -449,7 +440,7 @@ class CustomDataManager:
                 )
 
         # validate the file name
-        name = _validate_mcf_file_name(mcf_file_name)
+        name = validate_mcf_file_name(mcf_file_name)
         # add the nodes
         for node in stat_vars.nodes:
             self._mcf_nodes.setdefault(name, MCFNodes()).add(node, override=override)
@@ -670,7 +661,7 @@ class CustomDataManager:
         file_names = (
             [
                 (
-                    _validate_mcf_file_name(mcf_file_name)
+                    validate_mcf_file_name(mcf_file_name)
                     if mcf_file_name is not None
                     else None
                 )
@@ -784,7 +775,7 @@ class CustomDataManager:
         file_names = (
             [
                 (
-                    _validate_mcf_file_name(mcf_file_name)
+                    validate_mcf_file_name(mcf_file_name)
                     if mcf_file_name is not None
                     else None
                 )
@@ -915,7 +906,7 @@ class CustomDataManager:
             override: If True, overwrite the file if it exists. Defaults to False.
         """
         # validate the file name
-        mcf_file_name = _validate_mcf_file_name(mcf_file_name)
+        mcf_file_name = validate_mcf_file_name(mcf_file_name)
 
         # export the MCF file
         output_path = Path(dir_path) / mcf_file_name
