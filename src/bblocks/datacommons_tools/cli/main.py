@@ -2,7 +2,14 @@
 
 import argparse
 from typing import Iterable
-from bblocks.datacommons_tools.cli import csv2mcf
+
+from bblocks.datacommons_tools.cli import (
+    csv2mcf,
+    data_load,
+    data_load_pipeline,
+    redeploy,
+    upload,
+)
 
 __all__ = ["main"]
 
@@ -14,6 +21,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     csv2mcf.add_parser(subparsers)
+    upload.add_parser(subparsers)
+    data_load.add_parser(subparsers)
+    redeploy.add_parser(subparsers)
+    data_load_pipeline.add_parser(subparsers)
     return parser
 
 
