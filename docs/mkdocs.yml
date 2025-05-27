@@ -2,3 +2,4 @@ site_name: tools/blocks/datacommons-tools
 
 nav:
   - index.md
+  - Getting started: getting-started.md
