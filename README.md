@@ -1,4 +1,4 @@
-# bblocks-places
+# bblocks-datacommons-tools
 
 __Manage and load data to custom Data Commons instances__
 
