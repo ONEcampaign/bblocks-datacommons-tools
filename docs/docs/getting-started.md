@@ -3,10 +3,11 @@
 This page walks you through the installation of `bblocks-datacommonst-tools` and includes a simple example to illustrate some of the functionality of the package.
 
 However, much more thorough examples are provided depending on your needs:
-- Using the [explicit schema]("./explicit-schema.md")
-- Using the [implicit schema]("./implicit-schema.md")
-- Using [other tools]("./other-tools.md") (e.g to manage MCF files)
-- [Loading]("./loading-data.md") data and configuration to the Knowledge Graph
+
+- Using the [explicit schema](./explicit-schema.md)
+- Using the [implicit schema](./implicit-schema.md)
+- Using [other tools](./other-tools.md) (e.g to manage MCF files)
+- [Loading](./loading-data.md) data and configuration to the Knowledge Graph
 
 ## Installation
 
@@ -115,7 +116,7 @@ manager.add_variable_to_config(
     ],
     properties={"measurementMethod": "Commitment"},
     )
- ```
+```
 
 ### 5. Export the `config.json` and (optionally) data CSVs
 
@@ -135,7 +136,8 @@ project, Storage Bucket, etc. You can use `.env` or `.json` files,
 or simply make the right information available as environment variables.
 A detailed description of the needed information, can be found in the documentation.
 
-#### Load the settings
+**Load the settings**
+
 First, load the settings using `get_kg_settings`. In this example, we will load them from a `.env` file available in our working directory.
 
 ```python  title="Load settings"
