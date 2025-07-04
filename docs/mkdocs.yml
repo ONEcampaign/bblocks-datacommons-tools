@@ -3,8 +3,8 @@ site_name: tools/bblocks/datacommons-tools
 nav:
     - index.md
     - Getting started: getting-started.md
-    - Using the Explicit Schema: explicit-schema.md
-    - Using the Implicit Schema: implicit-schema.md
-    - Loading Data to the Knowledge Graph: loading-data.md
-    - Other tools: other-tools.md
+    - Preparing data: preparing-data.md
+    - Data Commons schemas: dc-schemas.md
+    - Loading data: loading-data.md
+    - CLI tools: cli-tools.md
     - Changelog: changelog.md

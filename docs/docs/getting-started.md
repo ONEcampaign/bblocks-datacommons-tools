@@ -109,8 +109,11 @@ manager.add_implicit_schema_file(
     ignoreColumns=["oecd_provider_code"],
     observationProperties={"unit": "USDollar"},
 )
-
 ```
+
+[//]: # (<--- TODO: Add explicit schema data example --->)
+```python title="Add explicit schema data"```
+
 
 Once you are finished adding and editing data and configuration, you can 
 validate and export all the files for your custom Data Commons instance.
