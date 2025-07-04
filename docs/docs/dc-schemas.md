@@ -49,7 +49,7 @@ manager = CustomDataManager()
 
 This creates a new `CustomDataManager` instance with a blank `config.json` file.
 
-We are foreward looking data engineers, so we know that our data will grow over time. So we might want to organise the
+We are forward looking data engineers, so we know that our data will grow over time. So we might want to organise the
 files in subdirectories. Let's allow subdirectories in the `config.json` file:
 
 ```python
