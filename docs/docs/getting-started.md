@@ -119,6 +119,9 @@ validate and export all the files for your custom Data Commons instance.
 manager.export_all("path/to/output/folder")
 ```
 
+**Read more detailed documentation about preparing data with the `CustomDataManager` 
+[here ↗](./preparing-data.md)**
+
 ## Loading data
 
 You can programmatically push the data and config to a Google Cloud
