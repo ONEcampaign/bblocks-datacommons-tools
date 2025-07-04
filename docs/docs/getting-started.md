@@ -93,7 +93,7 @@ manager.add_variable_to_config(
     )
 ```
 
-You can pass pandas dataFrames to the manager, specifying what schema is being used, and the manager will handle 
+You can pass pandas DataFrames to the manager, specifying what schema is being used, and the manager will handle 
 exporting the data as CSVs in the correct format.
 
 ```python title="Add implicit schema data
