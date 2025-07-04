@@ -1,13 +1,43 @@
 # Getting started with `bblocks-datacommons-tools`
 
-This page walks you through the installation of `bblocks-datacommonst-tools` and includes a simple example to illustrate some of the functionality of the package.
+This page walks you through the basic steps to install and start using 
+`bblocks-datacommonst-tools` to prepare and load the data for your custom instance.
 
-However, much more thorough examples are provided depending on your needs:
+## About custom Data Commons instances
 
-- Using the [explicit schema](./explicit-schema.md)
-- Using the [implicit schema](./implicit-schema.md)
-- Using [other tools](./other-tools.md) (e.g to manage MCF files)
-- [Loading](./loading-data.md) data and configuration to the Knowledge Graph
+Anyone can build and manage their own Data Commons instance—combining their own datasets with the base
+data available from datacommons.org, and taking advantage of built-in features like natural language queries, 
+interactive visualisations, and data exploration tools. For many organisations, a custom instance is a practical 
+way to publish data with exploration and visualisation tools without building infrastructure from scratch.
+
+However, preparing your data for a Data Commons knowledge graph, uploading the necessary files to Google 
+Cloud Platform (GCP), and deploying the service can be a repetitive and error-prone process.
+For smaller projects with limited data and infrequent updates, managing the workflow manually may be
+sufficient. But for larger datasets or pipelines with regular refreshes, the process quickly 
+becomes tedious and difficult to maintain.
+
+`bblocks-datacommons-tools` streamlines this workflow by allowing you to programmatically prepare and load data using
+a Python-based pipeline.
+
+Before you get started, you should have a basic understanding of how custom Data Commons instances work and 
+what the data loading process involves. You can find the
+[official documentation here](docs.datacommons.org/custom_dc/custom_data.html).
+
+At a top level, you should be familiar with:
+
+- **The `config.json` file**: the 
+[JSON configuration](https://docs.datacommons.org/custom_dc/custom_data.html#step-2-write-the-json-config-file) 
+file that specifies how to map and resolve data to the
+Data Commons schema knowledge graph.
+- **The data files**: CSV files containing the data formatted for a specified schema, either 
+[implicit](https://docs.datacommons.org/custom_dc/custom_data.html#prepare-your-data-using-implicit-schema) 
+or [explicit](https://docs.datacommons.org/custom_dc/custom_data.html#explicit).
+- **Meta Content Framework 
+([MCF](https://docs.datacommons.org/custom_dc/custom_data.html#step-1-define-statistical-variables-in-mcf)) files**: files that provide additional flexibility form modeling data for the knowledge
+graph.
+- **Uploading data and deploying**: Files need to be loaded to GCP, and the service needs to be 
+[deployed](https://docs.datacommons.org/custom_dc/deploy_cloud.html).
+
 
 ## Installation
 
@@ -24,39 +54,21 @@ Or from the main `bblocks` package with an extra:
 pip install "bblocks[datacommons-tools]"
 ```
 
-It can also be installed from GitHub:
-```bash
-pip install git+https://github.com/ONEcampaign/bblocks-datacommons-tools
-```
+## Preparing data
 
-## Sample Usage
+`bblocks-datacommons-tools` offers convenient functionality to prepare configuration JSON, MCF, and custom data files
+without having to manually edit these files. To access this functionality, create an instance of the 
+`CustomDataManager` class.
 
-Here's a simple example covering how to use the "implicit" Data Commons
-schema to load a single dataset. Please see the full [documentation page](https://docs.one.org/tools/bblocks/datacommons-tools/) for a thorough 
-introduction to the package, and to learn how to use it.
-
-
-### 1. Create a CustomDataManager object. 
-
-The CustomDataManager object will handle generating the `config.json` file, as well as (optionally) taking Pandas DataFrames and exporting them as CSVs (in the right format) for loading to the Knowlede Graph.
-
-In this example, we assume a `config.json` does not yet exist.
-
-```python title="Instantiate the CustomDataManager class"
+```python
 from bblocks.datacommons_tools import CustomDataManager
 
-# Create the object and call it "manager"
 manager = CustomDataManager()
-
-# Configure it to include subdirectories
-manager.set_includeInputSubdirs(True)
-
 ```
 
-### 2. Add the provenance information for our data
-You can add or manage provenance information on the `config.py` file.
+The `CustomDataManager` lets you create or edit the `config.json` file without editing it manually. 
 
-In this example, we will add a provenance for ONE Data's Climate Finance Files.
+You can register variables, sources or provenances, and data files. 
 
 ```python title="Add provenance and source"
 manager.add_provenance(
@@ -66,43 +78,6 @@ manager.add_provenance(
     source_url="https://data.one.org",
 )
 ```
-
-### 3. Add the data to the CustomDataManager object.
-Next, you need to specify your data on the `config.json` file. 
-
-Adding actual data data to the `CustomDataManager` is an optional step. 
-
-For this example, we will assume a DataFrame is available via the
-`data` variable.
-
-To add to the `CustomDataManager`, using the Implicit Schema:
-
-```python title="Register data"
-manager.add_implicit_schema_file(
-    file_name="climate_finance/one_cf_provider_commitments.csv",
-    provenance="ONE Climate Finance",
-    entityType="Country",
-    data=data,
-    ignoreColumns=["oecd_provider_code"],
-    observationProperties={"unit": "USDollar"},
-)
-```
-
-Adding the data in the step above is optional. You can also create the inputFile in the config and add the data tied to that inputFile at a later stage by running:
-
-```python
-manager.add_data(data=data, file_name='one_cf_provider_commitments.csv')
-```
-
-Or you can manually add the relevant CSV file (matching what you declared as `file_name`).
-
-### 4. Add the indicators to config
-Next, you need to specify information about the StatVars (variables) contained
-in your data file(s).
-
-When using the Implicit Schema, you can specify additional information.
-
-For convenience, you could loop through a dictionary of indicators and information. For this example we'll add a single indicator.
 
 ```python title="Register an indicator"
 manager.add_variable_to_config(
@@ -118,52 +93,67 @@ manager.add_variable_to_config(
     )
 ```
 
-### 5. Export the `config.json` and (optionally) data CSVs
+You can pass pandas DataFrames to the manager, specifying what schema is being used, and the manager will handle 
+exporting the data as CSVs in the correct format.
 
-Next, once all the data is added and the config is set up, you can export the `config.json` and data. When you export, the `config.json` is validated automatically
+```python title="Add implicit schema data
+import pandas as pd
 
-```python title="Export config and data"
+df = pd.DataFrame(...)
+
+manager.add_implicit_schema_file(
+    file_name="climate_finance/one_cf_provider_commitments.csv",
+    provenance="ONE Climate Finance",
+    entityType="Country",
+    data=df,
+    ignoreColumns=["oecd_provider_code"],
+    observationProperties={"unit": "USDollar"},
+)
+```
+
+[//]: # (<--- TODO: Add explicit schema data example --->)
+```python title="Add explicit schema data"```
+
+
+Once you are finished adding and editing data and configuration, you can 
+validate and export all the files for your custom Data Commons instance.
+
+```python
 manager.export_all("path/to/output/folder")
 ```
 
-### 6. (Optionally) load to the Knowledge Graph
-You can also programmatically push the data and config to a Google Cloud
+**Read more detailed documentation about preparing data with the `CustomDataManager` 
+[here ↗](./preparing-data.md)**
+
+## Loading data
+
+You can programmatically push the data and config to a Google Cloud
 Storage Bucket, trigger the data load job, and redeploy your Data Commons
 instance.
 
-To do this, you'll need to load information about your
-project, Storage Bucket, etc. You can use `.env` or `.json` files,
-or simply make the right information available as environment variables.
-A detailed description of the needed information, can be found in the documentation.
+First, specify all the configuration settings needed to add files to the storage bucket. For convenience these
+can be specified in a `.env` file (read more about the configuration settings [here](./loading-data.md)).
 
-**Load the settings**
 
-First, load the settings using `get_kg_settings`. In this example, we will load them from a `.env` file available in our working directory.
+```python
+from bblocks.datacommons_tools.gcp_utilities import get_kg_settings
 
-```python  title="Load settings"
+settings = get_kg_settings(source="env", env_file="customDC.env")
+```
+
+
+Now we can load data and configuration files to the storage bucket, run the data load job on GCP,
+and redeploy the custom Data Commons instance.
+
+```python
 from bblocks.datacommons_tools.gcp_utilities import (
     upload_to_cloud_storage,
     run_data_load,
     redeploy_service,
-    get_kg_settings,
 )
 
-settings = get_kg_settings(source="env", env_file="customDC.env")
-```
-Second, we'll upload the directory which contains the `config.json` file and
-any CSV and/or MCF files.
-
-```python title="Upload to GCS"
-upload_to_cloud_storage(settings=settings, directory="path/to/output/folder")
-```
-
-Third, we'll run the data load job on Google Cloud Platform.
-```python
+upload_to_cloud_storage(settings=settings, directory="path/to/folder/with/data_and_config")
 run_data_load(settings=settings)
-```
-
-Last, we need to redeploy the Custom Data Commons instance.
-
-```python
 redeploy_service(settings=settings)
+
 ```

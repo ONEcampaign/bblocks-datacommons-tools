@@ -1,34 +1,42 @@
 # bblocks-datacommons-tools
 
-__Manage and load data to custom Data Commons instances__
+__Tools to manage and load data for custom [Data Commons](https://datacommons.org/)
+instances__
 
-[![PyPI](https://img.shields.io/pypi/v/bblocks_datacommons_tools.svg)](https://pypi.org/project/bblocks_datacommons_tools/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bblocks_datacommons_tools.svg)](https://pypi.org/project/bblocks_places/)
-[![Docs](https://img.shields.io/badge/docs-bblocks-blue)](https://docs.one.org/tools/bblocks/datacommons_tools/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![codecov](https://codecov.io/gh/ONEcampaign/bblocks-datacommons-tools/graph/badge.svg?token=3ONEA8JQTC)](https://codecov.io/gh/ONEcampaign/bblocks-datacommons-tools)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-bblocks--datacommons--tools-181717?style=flat-square&labelColor=%23ddd&logo=github&color=%23555&logoColor=%23000)](https://github.com/ONEcampaign/bblocks-datacommons-tools)
+[![GitHub License](https://img.shields.io/github/license/ONEcampaign/bblocks-datacommons-tools?style=flat-square&labelColor=%23ddd)](https://github.com/ONEcampaign/bblocks-datacommons-tools/blob/main/LICENSE)
+[![PyPI - Version](https://img.shields.io/pypi/v/bblocks-datacommons-tools?style=flat-square&labelColor=%23ddd)](https://pypi.org/project/bblocks-datacommons-tools/)
+[![Codecov](https://img.shields.io/codecov/c/github/ONEcampaign/bblocks-datacommons-tools?style=flat-square&labelColor=ddd)](https://codecov.io/gh/ONEcampaign/bblocks-datacommons-tools)
 
-Custom [Data Commons](https://docs.datacommons.org/custom_dc/custom_data.html) requires that you provide your data in a specific schema, format, and file structure.
 
-At a high level, you need to provide the following:
+The `bblocks-datacommons_tools` package simplifies the process of preparing and loading data to custom 
+Data Commons instances. It provides utilities for building and editing configuration, metadata, and data files, 
+and automating the data load pipeline.
 
-- All observations data must be in CSV format, using a predefined schema.
-- You must also provide a JSON configuration file, named `config.json`, that specifies how to map and resolve the CSV contents to the Data Commons schema knowledge graph.
-- Depending on how you define your statistical variables (metrics), you may need to provide MCF (Meta Content Framework) files.
-- You may also need to define new custom entities.
+[Data Commons](https://datacommons.org/) is a Google initiative that brings together public data from a
+wide range of sources into a unified knowledge graph, making it easier to explore and analyze 
+information across domains. Organisations can create custom instances of Data Commons to host their 
+own datasets, integrate them into the graph, and build tailored tools on top of the platform.
 
-Managing this workflow by hand is tedious and easy to get wrong.
+Custom instances allow you to take advantage of core features such as natural language search and interactive 
+visualisations, while combining your own data with everything available in the base Data Commons.
 
-The `bblocks.datacommons_tools` package streamlines that process. It provides a Python API and command line utilities for building config files, generating MCF from CSV metadata and running the data load pipeline on Google Cloud. 
+`bblocks-datacommons_tools` is designed to simplify and automate steps to build your custom instance—removing
+much of the manual work involved in formatting and loading data, and helping you get your custom 
+knowledge graph up and running quickly.
 
-Use this package when you want to:
 
-- Manage `config.json` files programmatically.
-- Define statistical variables, entities or groups using MCF files.
-- Programmatically upload CSVs, MCF files, and the `config.json` file to Cloud Storage, trigger the load job and redeploy your custom Data Commons service with code.
+**Key features**
 
-In short, `datacommons-tools` removes much of the manual work involved in setting up and maintaining a custom Data Commons Knowledge Graph.
+- Build and edit `config.json` files programmatically
+- Generate MCF files from simple metadata
+- Upload CSV, MCF, and config files to Google Cloud Storage
+- Trigger the data load job and redeploy your custom instance
+- Use as a Python module or from the command line
 
-`bblocks-datacommons-tools` is part of the `bblocks` ecosystem, 
-a set of Python packages designed as building blocks for working with data in the international development 
-and humanitarian sectors.
+Ready to get started using `bblocks-datacommons-tools`?<br> 
+**Read [Getting started ↗](./getting-started.md).**
+
+Want to learn more about Data Commons? <br>
+**Read the official 
+[Custom Data Commons documentation ↗](https://docs.datacommons.org/custom_dc/index.html).**
