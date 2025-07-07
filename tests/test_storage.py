@@ -39,7 +39,8 @@ def test_list_bucket_files_with_prefix():
     blob_b.name = "folder/b.csv"
     bucket.list_blobs.return_value = [blob_a, blob_b]
     bucket.name = "my-bucket"
-    assert list_bucket_files(bucket, "folder") == ["folder/a.csv", "folder/b.csv"]
+    files = [f.replace("\\", "/") for f in list_bucket_files(bucket, "folder")]
+    assert files == ["folder/a.csv", "folder/b.csv"]
     bucket.list_blobs.assert_called_once_with(prefix="folder/")
 
 
@@ -52,7 +53,7 @@ def test_list_bucket_files_with_gs_path():
 
     result = list_bucket_files(bucket, "gs://one-datacommons-staging/one-data")
 
-    assert result == ["one-data/a.csv"]
+    assert [f.replace("\\", "/") for f in result] == ["one-data/a.csv"]
     bucket.list_blobs.assert_called_once_with(prefix="one-data/")
 
 
@@ -101,6 +102,7 @@ def test_get_unregistered_csv_files_with_prefix_removed():
 
     cfg = _minimal_config("sub/a.csv")
     missing = get_unregistered_csv_files(bucket, cfg, "prefix")
+    missing = [f.replace("\\", "/") for f in missing]
 
     assert missing == ["sub/b.csv"]
 
@@ -137,6 +139,7 @@ def test_get_missing_csv_files_with_prefix_added():
     )
 
     missing = get_missing_csv_files(bucket, cfg, "prefix")
+    missing = [f.replace("\\", "/") for f in missing]
 
     assert missing == ["sub/b.csv"]
 
