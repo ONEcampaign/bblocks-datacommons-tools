@@ -156,7 +156,7 @@ def get_unregistered_csv_files(
                 path = path.relative_to(prefix)
             except ValueError:
                 pass
-        csv_files.append(str(path))
+        csv_files.append(str(path).replace(os.sep, "/"))
 
     if isinstance(config, dict):
         config = Config.model_validate(config)
