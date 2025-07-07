@@ -52,7 +52,9 @@ def test_pipeline_command_runs_all(tmp_path: Path) -> None:
             "bblocks.datacommons_tools.cli.data_load_pipeline.upload_to_cloud_storage"
         ) as upload,
         patch("bblocks.datacommons_tools.cli.data_load_pipeline.run_data_load") as load,
-        patch("bblocks.datacommons_tools.cli.data_load_pipeline.redeploy_service") as red,
+        patch(
+            "bblocks.datacommons_tools.cli.data_load_pipeline.redeploy_service"
+        ) as red,
     ):
         get.return_value = Mock()
         exit_code = main(

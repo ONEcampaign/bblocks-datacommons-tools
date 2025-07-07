@@ -1,4 +1,5 @@
-""" This module contains functions to run a Cloud Run job and redeploy a Cloud Run service."""
+"""This module contains functions to run a Cloud Run job and redeploy a Cloud Run service."""
+
 from datetime import datetime, timezone
 
 from google.cloud.run_v2 import (
@@ -117,6 +118,4 @@ def redeploy_cloud_run_service(
 
     # Wait for the update to complete
     response = operation.result(timeout=timeout)
-    logger.info(
-        f"Service update completed with response: {response}"
-    )
+    logger.info(f"Service update completed with response: {response}")

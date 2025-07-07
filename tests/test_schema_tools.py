@@ -129,7 +129,4 @@ def test_to_camelcase_returns_already_camel():
 
 
 def test_to_camelcase_colon_comma_replacement():
-    assert (
-        to_camelCase("GDP: PPP, Constant 2017 USD")
-        == "gdp_Ppp_Constant2017Usd"
-    )
+    assert to_camelCase("GDP: PPP, Constant 2017 USD") == "gdp_Ppp_Constant2017Usd"
