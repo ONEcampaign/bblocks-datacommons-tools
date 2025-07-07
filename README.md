@@ -3,8 +3,8 @@
 __Manage and load data to custom Data Commons instances__
 
 [![PyPI](https://img.shields.io/pypi/v/bblocks_datacommons_tools.svg)](https://pypi.org/project/bblocks_datacommons_tools/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bblocks_datacommons_tools.svg)](https://pypi.org/project/bblocks_places/)
-[![Docs](https://img.shields.io/badge/docs-bblocks-blue)](https://docs.one.org/tools/bblocks/datacommons_tools/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bblocks_datacommons_tools.svg)](https://pypi.org/project/bblocks_datacommons_tools/)
+[![Docs](https://img.shields.io/badge/docs-bblocks-blue)](https://docs.one.org/tools/bblocks/datacommons-tools/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![codecov](https://codecov.io/gh/ONEcampaign/bblocks-datacommons-tools/graph/badge.svg?token=3ONEA8JQTC)](https://codecov.io/gh/ONEcampaign/bblocks-datacommons-tools)
 
