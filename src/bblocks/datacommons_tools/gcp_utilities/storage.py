@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Iterable, Sequence, Any
@@ -151,7 +152,8 @@ def get_unregistered_csv_files(
             continue
         if gcs_folder_name:
             try:
-                path = path.relative_to(gcs_folder_name)
+                prefix = gcs_folder_name.rstrip("/")
+                path = path.relative_to(prefix)
             except ValueError:
                 pass
         csv_files.append(str(path))
@@ -238,10 +240,13 @@ def get_bucket_files(
         elif ext == ".json":
             results[name] = json.loads(raw.decode("utf-8"))
         elif ext == ".mcf":
-            with tempfile.NamedTemporaryFile(suffix=".mcf", delete=True) as tmp:
+            tmp = tempfile.NamedTemporaryFile(suffix=".mcf", delete=False)
+            try:
                 tmp.write(raw)
-                tmp.flush()
+                tmp.close()
                 results[name] = MCFNodes().load_from_mcf_file(tmp.name)
+            finally:
+                os.unlink(tmp.name)
         else:
             results[name] = raw
         logger.info(f"Downloaded {name} from bucket {bucket.name}")
