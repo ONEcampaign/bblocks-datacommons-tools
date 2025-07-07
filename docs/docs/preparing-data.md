@@ -227,3 +227,9 @@ To export all files at once, you can use the `export_all` method:
 ```python
 manager.export_all("path/to/output/folder")
 ```
+**Note**: By default this will export the `config.json` and all data files. MCF files are not exported by default.
+To export MCF files as well, you should specify the `mcf_file_names` parameter:
+
+```python
+manager.export_all("path/to/output/folder", mcf_file_names=["mcf_file1.mcf", "mcf_file2.mcf"])
+```
