@@ -5,3 +5,6 @@
 
 ## v0.1.0 (in development)
 - Initial release of the `bblocks-datacommons-tools` package for external preview and testing
+
+## v0.0.1 (2025-07-07)
+- Initial release of the `bblocks-datacommons-tools`
