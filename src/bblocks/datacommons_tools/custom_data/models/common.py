@@ -1,7 +1,14 @@
 import csv
-from typing import Annotated
+from typing import Annotated, Any
 
-from pydantic import PlainSerializer, PlainValidator, StringConstraints
+from pydantic import PlainSerializer, PlainValidator, StringConstraints, BeforeValidator
+
+
+def _strip_space_after_dcid(v: Any) -> Any:
+    if isinstance(v, str):
+        if v.startswith("dcid:"):
+            v = "dcid:" + v[5:].lstrip()
+    return v
 
 
 def _ensure_quoted(s: str) -> str:
@@ -88,18 +95,22 @@ StrOrListStr = Annotated[
 ]
 """Accepts a string or list and serialises to a comma-separated string."""
 
-Dcid = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:\S+$")]
+Dcid = Annotated[
+    str,
+    BeforeValidator(_strip_space_after_dcid),
+    StringConstraints(strip_whitespace=True, pattern=r"^dcid:\S+$"),
+]
 
 GroupDcid = Annotated[
-    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
+    Dcid, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
 ]
 
 PeerGroupDcid = Annotated[
-    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*svpg/.*")
+    Dcid, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*svpg/.*")
 ]
 
 TopicDcid = Annotated[
-    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*topic/.*")
+    Dcid, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*topic/.*")
 ]
 
 DcidOrListDcid = Annotated[
