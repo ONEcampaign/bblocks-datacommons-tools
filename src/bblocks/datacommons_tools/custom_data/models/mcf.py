@@ -6,7 +6,11 @@ from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, StrOrListStr, Dcid
+from bblocks.datacommons_tools.custom_data.models.common import (
+    QuotedStr,
+    StrOrListStr,
+    Dcid,
+)
 
 
 class MCFNode(BaseModel):

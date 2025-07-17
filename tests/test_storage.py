@@ -184,7 +184,9 @@ def test_get_bucket_files_multiple_types():
 
     blob_csv.download_as_bytes.return_value = b"a,b\n1,2\n"
     blob_json.download_as_bytes.return_value = b'{"x": 1}'
-    blob_mcf.download_as_bytes.return_value = b'Node: dcid:n\nname: "N"\ntypeOf: dcid:T\n\n'
+    blob_mcf.download_as_bytes.return_value = (
+        b'Node: dcid:n\nname: "N"\ntypeOf: dcid:T\n\n'
+    )
 
     def blob_side(name: str):
         return {"a.csv": blob_csv, "b.json": blob_json, "c.mcf": blob_mcf}[name]

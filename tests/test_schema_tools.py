@@ -38,10 +38,7 @@ def test_csv_metadata_to_nodes(tmp_path):
 def make_sv(member_of: str) -> StatVarMCFNode:
     """Helper to create a StatVarMCFNode with a given memberOf path."""
     return StatVarMCFNode(
-        Node="dcid:dummy",
-        name="TestVar",
-        description="",
-        memberOf=member_of,
+        Node="dcid:dummy", name="TestVar", description="", memberOf=member_of
     )
 
 

@@ -18,7 +18,8 @@ def test_csv2mcf(tmp_path: Path) -> None:
 def test_csv2mcf_with_options_and_mapping(tmp_path: Path) -> None:
     csv = tmp_path / "sv2.csv"
     csv.write_text(
-        "identifier;name_col;type;ignore_me\n" "dcid:sv1;SV1;dcid:StatisticalVariable;junk\n"
+        "identifier;name_col;type;ignore_me\n"
+        "dcid:sv1;SV1;dcid:StatisticalVariable;junk\n"
     )
     out_mcf = tmp_path / "out.mcf"
     exit_code = main(
@@ -48,7 +49,9 @@ def test_csv2mcf_with_options_and_mapping(tmp_path: Path) -> None:
 
 def test_csv2mcf_node_type_statvar_group(tmp_path: Path) -> None:
     csv = tmp_path / "group.csv"
-    csv.write_text("Node,name,specializationOf\ndcid:g/myGroup,My Group,dcid:dc/g/Root\n")
+    csv.write_text(
+        "Node,name,specializationOf\ndcid:g/myGroup,My Group,dcid:dc/g/Root\n"
+    )
     out_mcf = tmp_path / "group.mcf"
     exit_code = main(["csv2mcf", str(csv), str(out_mcf), "--node-type", "StatVarGroup"])
     assert exit_code == 0

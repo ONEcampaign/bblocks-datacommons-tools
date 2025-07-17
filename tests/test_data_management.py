@@ -167,11 +167,15 @@ def test_add_variable_group_to_mcf_and_override():
     )
     groups = manager._mcf_nodes[DEFAULT_GROUP_NAME].nodes
     assert any(
-        n.Node == "dcid:test/g/1" and n.specializationOf == "dcid:dc/g/Root" for n in groups
+        n.Node == "dcid:test/g/1" and n.specializationOf == "dcid:dc/g/Root"
+        for n in groups
     )
 
     manager.add_variable_group_to_mcf(
-        Node="dcid:test/g/1", name="Group2", specializationOf="dcid:dc/g/Root", override=True
+        Node="dcid:test/g/1",
+        name="Group2",
+        specializationOf="dcid:dc/g/Root",
+        override=True,
     )
     updated = manager._mcf_nodes[DEFAULT_GROUP_NAME].nodes
     assert any(n.name == "Group2" for n in updated if n.Node == "dcid:test/g/1")
@@ -366,7 +370,9 @@ def test_rename_provenance_updates_all_references():
         entityType="Country",
         observationProperties={"unit": "u"},
     )
-    manager.add_variable_to_config("dcid:sv1", name="Var", properties={"provenance": "p1"})
+    manager.add_variable_to_config(
+        "dcid:sv1", name="Var", properties={"provenance": "p1"}
+    )
     manager.add_variable_to_mcf(Node="dcid:sv1", name="Var", provenance="p1")
 
     manager.rename_provenance("p1", "pX")

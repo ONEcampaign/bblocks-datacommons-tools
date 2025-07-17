@@ -10,7 +10,8 @@ from bblocks.datacommons_tools.custom_data.models.common import (
     Dcid,
     GroupDcid,
     PeerGroupDcid,
-    DcidOrListDcid, GroupDcidOrListGroupDcid,
+    DcidOrListDcid,
+    GroupDcidOrListGroupDcid,
 )
 
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
