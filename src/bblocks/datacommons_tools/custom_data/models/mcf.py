@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
-from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, StrOrListStr
+from bblocks.datacommons_tools.custom_data.models.common import QuotedStr, StrOrListStr, Dcid
 
 
 class MCFNode(BaseModel):
@@ -23,10 +23,10 @@ class MCFNode(BaseModel):
         subClassOf: Optional DCID indicating the 'parent' Node class.
     """
 
-    Node: str
+    Node: Dcid
     name: QuotedStr
-    typeOf: str
-    dcid: Optional[str] = None
+    typeOf: Dcid
+    dcid: Optional[Dcid] = None
     description: Optional[QuotedStr] = None
     provenance: Optional[QuotedStr] = None
     shortDisplayName: Optional[QuotedStr] = None

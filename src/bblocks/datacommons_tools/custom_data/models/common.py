@@ -1,7 +1,7 @@
 import csv
 from typing import Annotated
 
-from pydantic import PlainSerializer, PlainValidator
+from pydantic import PlainSerializer, PlainValidator, StringConstraints
 
 
 def _ensure_quoted(s: str) -> str:
@@ -74,7 +74,6 @@ QuotedStr = Annotated[
 ]
 """A string annotated for serialisation into an MCF-compatible quoted format."""
 
-
 QuotedStrListOrStr = Annotated[
     str | list[str],
     PlainValidator(parse_str_or_list),
@@ -82,10 +81,52 @@ QuotedStrListOrStr = Annotated[
 ]
 """Accepts a string or list and serialises to quoted MCF format."""
 
-
 StrOrListStr = Annotated[
     str | list[str],
     PlainValidator(parse_str_or_list),
     PlainSerializer(mcf_str, return_type=str | None, when_used="always"),
+]
+"""Accepts a string or list and serialises to a comma-separated string."""
+
+Dcid = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:\S+$")]
+
+GroupDcid = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
+]
+
+PeerGroupDcid = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*svpg/.*")
+]
+
+TopicDcid = Annotated[
+    str, StringConstraints(strip_whitespace=True, pattern=r"^dcid:.*topic/.*")
+]
+
+DcidOrListDcid = Annotated[
+    Dcid | list[Dcid],
+    PlainValidator(parse_str_or_list),
+    PlainSerializer(mcf_str, return_type=Dcid | None, when_used="always"),
+]
+"""Accepts a string or list and serialises to a comma-separated string."""
+
+
+GroupDcidOrListGroupDcid = Annotated[
+    GroupDcid | list[GroupDcid],
+    PlainValidator(parse_str_or_list),
+    PlainSerializer(mcf_str, return_type=GroupDcid | None, when_used="always"),
+]
+"""Accepts a string or list and serialises to a comma-separated string."""
+
+PeerGroupDcidOrListPeerGroupDcid = Annotated[
+    PeerGroupDcid | list[PeerGroupDcid],
+    PlainValidator(parse_str_or_list),
+    PlainSerializer(mcf_str, return_type=PeerGroupDcid | None, when_used="always"),
+]
+"""Accepts a string or list and serialises to a comma-separated string."""
+
+TopicDcidOrListTopicDcid = Annotated[
+    TopicDcid | list[TopicDcid],
+    PlainValidator(parse_str_or_list),
+    PlainSerializer(mcf_str, return_type=TopicDcid | None, when_used="always"),
 ]
 """Accepts a string or list and serialises to a comma-separated string."""

@@ -16,8 +16,8 @@ def test_csv_metadata_to_nodes(tmp_path):
     """
     content = (
         "Node,name,typeOf,extra\n"
-        "n1,Name1,dcid:StatisticalVariable,\n"
-        "n2,Name2,dcid:StatisticalVariable,prop\n"
+        "dcid:n1,Name1,dcid:StatisticalVariable,\n"
+        "dcid:n2,Name2,dcid:StatisticalVariable,prop\n"
     )
     csv_path = tmp_path / "test.csv"
     csv_path.write_text(content)
@@ -38,12 +38,9 @@ def test_csv_metadata_to_nodes(tmp_path):
 def make_sv(member_of: str) -> StatVarMCFNode:
     """Helper to create a StatVarMCFNode with a given memberOf path."""
     return StatVarMCFNode(
-        Node="dcid: dummy",
+        Node="dcid:dummy",
         name="TestVar",
         description="",
-        unit="",
-        measuredProperty="",
-        populationType="",
         memberOf=member_of,
     )
 

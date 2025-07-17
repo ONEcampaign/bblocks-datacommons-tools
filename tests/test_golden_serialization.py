@@ -13,7 +13,7 @@ def test_mcfnode_snapshot():
     got = (GOLDEN_DIR / "sample_node.mcf").read_text()
 
     node = MCFNode(
-        Node="X/foo",
+        Node="dcid:X/foo",
         name='"Some Name"',
         typeOf="dcid:StatisticalVariable",
         dcid="dcid:foo",
@@ -55,13 +55,13 @@ def test_config_json_snapshot(tmp_path):
 def test_full_mcf_export(tmp_path):
     mgr = CustomDataManager()
     mgr.add_variable_group_to_mcf(
-        Node="one/g/group1", name="Group One", specializationOf="dcid:dc/g/Root"
+        Node="dcid:one/g/group1", name="Group One", specializationOf="dcid:dc/g/Root"
     )
     mgr.add_variable_to_mcf(
-        Node="var/one",
+        Node="dcid:var/one",
         name="Test Var",
         description="Test var",
-        memberOf="one/g/group1",
+        memberOf="dcid:one/g/group1",
     )
     mgr.export_mfc_file(str(tmp_path), mcf_file_name="custom_nodes.mcf")
     got = (tmp_path / "custom_nodes.mcf").read_text()

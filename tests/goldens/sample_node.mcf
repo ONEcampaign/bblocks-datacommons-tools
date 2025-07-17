@@ -1,4 +1,4 @@
-Node: X/foo
+Node: dcid:X/foo
 name: "Some Name"
 typeOf: dcid:StatisticalVariable
 dcid: dcid:foo
