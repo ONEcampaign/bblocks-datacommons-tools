@@ -9,7 +9,10 @@ def test_mcfnode_mcf_output_order_and_formatting():
     after 'Node:' line.
     """
     node = MCFNode(
-        Node="dcid:TestNode", name='"My Name"', typeOf="dcid:TypeA", description='"Desc"'
+        Node="dcid:TestNode",
+        name='"My Name"',
+        typeOf="dcid:TypeA",
+        description='"Desc"',
     )
     lines = node.mcf.strip().splitlines()
     assert lines[0] == "Node: dcid:TestNode"
