@@ -9,12 +9,15 @@ def test_mcfnode_mcf_output_order_and_formatting():
     after 'Node:' line.
     """
     node = MCFNode(
-        Node="TestNode", name='"My Name"', typeOf="TypeA", description='"Desc"'
+        Node="dcid:TestNode",
+        name='"My Name"',
+        typeOf="dcid:TypeA",
+        description='"Desc"',
     )
     lines = node.mcf.strip().splitlines()
-    assert lines[0] == "Node: TestNode"
+    assert lines[0] == "Node: dcid:TestNode"
     assert lines[1] == 'name: "My Name"'
-    assert lines[2] == "typeOf: TypeA"
+    assert lines[2] == "typeOf: dcid:TypeA"
     assert lines[3] == 'description: "Desc"'
 
 
@@ -23,12 +26,12 @@ def test_mcfnodes_add_override_and_remove():
     Tests adding nodes, override behavior, and removal from MCFNodes.
     """
     nodes = MCFNodes()
-    node1 = MCFNode(Node="n1", name='"First"', typeOf="T1")
+    node1 = MCFNode(Node="dcid:n1", name='"First"', typeOf="dcid:T1")
     nodes.add(node1)
-    assert nodes._expect_present("n1") == 0
+    assert nodes._expect_present("dcid:n1") == 0
 
     # Adding same node without override should error
-    node1b = MCFNode(Node="n1", name='"Second"', typeOf="T1")
+    node1b = MCFNode(Node="dcid:n1", name='"Second"', typeOf="dcid:T1")
     with pytest.raises(ValueError):
         nodes.add(node1b, override=False)
 
@@ -37,6 +40,6 @@ def test_mcfnodes_add_override_and_remove():
     assert nodes.nodes[0].name == '"Second"'
 
     # Remove node
-    nodes.remove("n1")
+    nodes.remove("dcid:n1")
     with pytest.raises(ValueError):
         nodes._expect_present("n1")

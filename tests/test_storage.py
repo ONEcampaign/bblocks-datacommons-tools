@@ -184,7 +184,9 @@ def test_get_bucket_files_multiple_types():
 
     blob_csv.download_as_bytes.return_value = b"a,b\n1,2\n"
     blob_json.download_as_bytes.return_value = b'{"x": 1}'
-    blob_mcf.download_as_bytes.return_value = b'Node: n\nname: "N"\ntypeOf: T\n\n'
+    blob_mcf.download_as_bytes.return_value = (
+        b'Node: dcid:n\nname: "N"\ntypeOf: dcid:T\n\n'
+    )
 
     def blob_side(name: str):
         return {"a.csv": blob_csv, "b.json": blob_json, "c.mcf": blob_mcf}[name]
@@ -196,4 +198,4 @@ def test_get_bucket_files_multiple_types():
     expected_df = pd.DataFrame({"a": [1], "b": [2]})
     pd.testing.assert_frame_equal(result["a.csv"], expected_df)
     assert result["b.json"] == {"x": 1}
-    assert result["c.mcf"].nodes[0].Node == "n"
+    assert result["c.mcf"].nodes[0].Node == "dcid:n"

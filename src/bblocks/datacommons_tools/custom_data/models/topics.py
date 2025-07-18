@@ -2,7 +2,11 @@ from typing import Literal
 
 from pydantic import constr
 
-from bblocks.datacommons_tools.custom_data.models.common import StrOrListStr
+from bblocks.datacommons_tools.custom_data.models.common import (
+    DcidOrListDcid,
+    GroupDcidOrListGroupDcid,
+    TopicDcidOrListTopicDcid,
+)
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
 
 
@@ -31,4 +35,6 @@ class TopicMCFNode(MCFNode):
 
     Node: constr(strip_whitespace=True, pattern=r".*topic/.*")
     typeOf: Literal["dcid:Topic"] = "dcid:Topic"
-    relevantVariable: StrOrListStr
+    relevantVariable: (
+        DcidOrListDcid | GroupDcidOrListGroupDcid | TopicDcidOrListTopicDcid
+    )

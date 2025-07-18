@@ -7,6 +7,11 @@ from pydantic import BaseModel, ConfigDict, constr
 from bblocks.datacommons_tools.custom_data.models.common import (
     QuotedStrListOrStr,
     StrOrListStr,
+    Dcid,
+    GroupDcid,
+    PeerGroupDcid,
+    DcidOrListDcid,
+    GroupDcidOrListGroupDcid,
 )
 
 from bblocks.datacommons_tools.custom_data.models.mcf import MCFNode
@@ -75,13 +80,13 @@ class StatVarMCFNode(MCFNode):
 
     statType: Optional[StatType] = StatType.MEASURED_VALUE
     typeOf: Literal["dcid:StatisticalVariable"] = "dcid:StatisticalVariable"
-    memberOf: Optional[StrOrListStr] = None
-    relevantVariable: Optional[StrOrListStr] = None
+    memberOf: Optional[GroupDcidOrListGroupDcid] = None
+    relevantVariable: Optional[DcidOrListDcid] = None
     searchDescription: Optional[QuotedStrListOrStr] = None
-    populationType: Optional[str] = None
-    measuredProperty: Optional[str] = None
-    measurementQualifier: Optional[str] = None
-    measurementDenominator: Optional[str] = None
+    populationType: Optional[Dcid] = None
+    measuredProperty: Optional[Dcid] = None
+    measurementQualifier: Optional[Dcid] = None
+    measurementDenominator: Optional[Dcid] = None
     footnote: Optional[QuotedStrListOrStr] = None
 
 
@@ -103,9 +108,9 @@ class StatVarGroupMCFNode(MCFNode):
         subClassOf: Optional DCID indicating the 'parent' Node class.
     """
 
-    Node: constr(strip_whitespace=True, pattern=r".*g/.*")
+    Node: GroupDcid
     typeOf: Literal["dcid:StatVarGroup"] = "dcid:StatVarGroup"
-    specializationOf: constr(strip_whitespace=True, pattern=r"^dcid:.*g/.*")
+    specializationOf: GroupDcid
 
 
 class StatVarPeerGroupMCFNode(MCFNode):
@@ -127,6 +132,6 @@ class StatVarPeerGroupMCFNode(MCFNode):
         subClassOf: Optional DCID indicating the 'parent' Node class.
     """
 
-    Node: constr(strip_whitespace=True, pattern=r".*svpg/.*")
+    Node: PeerGroupDcid
     typeOf: Literal["dcid:StatVarPeerGroup"] = "dcid:StatVarPeerGroup"
-    member: StrOrListStr
+    member: DcidOrListDcid
