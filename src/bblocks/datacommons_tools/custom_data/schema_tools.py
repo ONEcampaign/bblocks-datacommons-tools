@@ -92,7 +92,8 @@ def to_camelCase(segment: str) -> str:
     Turn a segment like 'Official Development Assistance' into 'officialDevelopmentAssistance'.
     Keep all-upper or already-camel segments (e.g. DAC1, ODA) unchanged.
     """
-    seg = segment.strip().replace(":", "_").replace(",", "_")
+    seg = segment.strip()
+    seg = re.sub(r"[:,();&]", "_", seg)
 
     # All upper case
     if re.fullmatch(r"[A-Z0-9]+", seg):
