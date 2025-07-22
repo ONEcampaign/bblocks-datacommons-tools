@@ -9,6 +9,7 @@
 ## v0.0.4 (2025-07-22)
 - Improved how groups strings are transformed to camelCase by dealing with
 additional special characters
+- Removed option to override input and output folders on the data load job.
 
 ## v0.0.3 (2025-07-18)
 - Fixes two bugs related to MFC files. It now enforces the `dcid:` prefix for Node and
