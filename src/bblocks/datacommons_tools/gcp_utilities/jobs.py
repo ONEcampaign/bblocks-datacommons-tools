@@ -24,8 +24,6 @@ def _build_env_vars(settings: KGSettings) -> list[EnvVar]:
     """Prepare the environment variables for Cloud Run tasks."""
     return [
         EnvVar({"name": "TIMESTAMP", "value": _utc_timestamp()}),
-        EnvVar({"name": "INPUT_DIR", "value": settings.full_gcs_input_path}),
-        EnvVar({"name": "OUTPUT_DIR", "value": settings.full_gcs_output_path}),
         EnvVar({"name": "DB_NAME", "value": settings.cloud_sql_db_name}),
     ]
 
