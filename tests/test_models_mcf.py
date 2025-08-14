@@ -26,9 +26,7 @@ def test_mcfnode_typeof_accepts_list_and_serializes():
     Accepts a list of DCIDs for typeOf and serializes as CSV.
     """
     node = MCFNode(
-        Node="dcid:TestNode",
-        name='"My Name"',
-        typeOf=["dcid:TypeA", "dcid:TypeB"],
+        Node="dcid:TestNode", name='"My Name"', typeOf=["dcid:TypeA", "dcid:TypeB"]
     )
     lines = node.mcf.strip().splitlines()
     assert lines[0] == "Node: dcid:TestNode"
@@ -41,9 +39,7 @@ def test_mcfnode_typeof_accepts_comma_string_and_serializes():
     Accepts a comma-delimited string for typeOf and serializes consistently.
     """
     node = MCFNode(
-        Node="dcid:TestNode",
-        name='"My Name"',
-        typeOf="dcid:TypeA, dcid:TypeB",
+        Node="dcid:TestNode", name='"My Name"', typeOf="dcid:TypeA, dcid:TypeB"
     )
     lines = node.mcf.strip().splitlines()
     assert lines[0] == "Node: dcid:TestNode"
@@ -54,10 +50,7 @@ def test_mcfnode_allows_missing_name_and_serializes_without_it():
     """
     `name` is optional; when omitted it should not appear in MCF output.
     """
-    node = MCFNode(
-        Node="dcid:NoNameNode",
-        typeOf="dcid:TypeA",
-    )
+    node = MCFNode(Node="dcid:NoNameNode", typeOf="dcid:TypeA")
     lines = node.mcf.strip().splitlines()
     assert lines[0] == "Node: dcid:NoNameNode"
     # With no name, typeOf should be next
@@ -73,7 +66,7 @@ def test_mcfnodes_load_from_file_without_name(tmp_path):
         "Node: dcid:NoName\n"
         "typeOf: dcid:TypeA\n\n"
         "Node: dcid:WithName\n"
-        "name: \"Some Name\"\n"
+        'name: "Some Name"\n'
         "typeOf: dcid:TypeB\n\n"
     )
     path = tmp_path / "nodes.mcf"
