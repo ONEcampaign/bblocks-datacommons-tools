@@ -10,6 +10,7 @@ from bblocks.datacommons_tools.custom_data.models.common import (
     QuotedStr,
     StrOrListStr,
     Dcid,
+    DcidOrListDcid,
 )
 
 
@@ -19,7 +20,8 @@ class MCFNode(BaseModel):
     Attributes:
         Node: Identifier for the Node.
         name: The human-readable name for the Node.
-        typeOf: The DCID representing the typeOf this Node.
+        typeOf: The DCID representing the typeOf this Node. It can be a single DCID
+            or a list of DCIDs if the Node belongs to multiple types.
         dcid: Optional DCID for uniquely identifying the Node.
         description: Optional human-readable description.
         provenance: Optional provenance information.
@@ -29,7 +31,7 @@ class MCFNode(BaseModel):
 
     Node: Dcid
     name: QuotedStr
-    typeOf: Dcid
+    typeOf: DcidOrListDcid
     dcid: Optional[Dcid] = None
     description: Optional[QuotedStr] = None
     provenance: Optional[QuotedStr] = None

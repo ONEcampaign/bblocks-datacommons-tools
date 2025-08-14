@@ -21,6 +21,35 @@ def test_mcfnode_mcf_output_order_and_formatting():
     assert lines[3] == 'description: "Desc"'
 
 
+def test_mcfnode_typeof_accepts_list_and_serializes():
+    """
+    Accepts a list of DCIDs for typeOf and serializes as CSV.
+    """
+    node = MCFNode(
+        Node="dcid:TestNode",
+        name='"My Name"',
+        typeOf=["dcid:TypeA", "dcid:TypeB"],
+    )
+    lines = node.mcf.strip().splitlines()
+    assert lines[0] == "Node: dcid:TestNode"
+    # Field order keeps name before typeOf
+    assert lines[2] == "typeOf: dcid:TypeA, dcid:TypeB"
+
+
+def test_mcfnode_typeof_accepts_comma_string_and_serializes():
+    """
+    Accepts a comma-delimited string for typeOf and serializes consistently.
+    """
+    node = MCFNode(
+        Node="dcid:TestNode",
+        name='"My Name"',
+        typeOf="dcid:TypeA, dcid:TypeB",
+    )
+    lines = node.mcf.strip().splitlines()
+    assert lines[0] == "Node: dcid:TestNode"
+    assert lines[2] == "typeOf: dcid:TypeA, dcid:TypeB"
+
+
 def test_mcfnodes_add_override_and_remove():
     """
     Tests adding nodes, override behavior, and removal from MCFNodes.
