@@ -5,7 +5,10 @@
 
 ## v0.1.0 (in development)
 - Initial release of the `bblocks-datacommons-tools` package for external preview and testing
-- 
+
+## v0.0.5 (2025-08-14)
+- Nodes can now contain a single `dcid` or a list of `dcids`
+
 ## v0.0.4 (2025-07-22)
 - Improved how groups strings are transformed to camelCase by dealing with
 additional special characters
