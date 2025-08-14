@@ -30,7 +30,7 @@ class MCFNode(BaseModel):
     """
 
     Node: Dcid
-    name: QuotedStr
+    name: Optional[QuotedStr] = None
     typeOf: DcidOrListDcid
     dcid: Optional[Dcid] = None
     description: Optional[QuotedStr] = None

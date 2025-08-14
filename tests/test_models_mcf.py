@@ -50,6 +50,44 @@ def test_mcfnode_typeof_accepts_comma_string_and_serializes():
     assert lines[2] == "typeOf: dcid:TypeA, dcid:TypeB"
 
 
+def test_mcfnode_allows_missing_name_and_serializes_without_it():
+    """
+    `name` is optional; when omitted it should not appear in MCF output.
+    """
+    node = MCFNode(
+        Node="dcid:NoNameNode",
+        typeOf="dcid:TypeA",
+    )
+    lines = node.mcf.strip().splitlines()
+    assert lines[0] == "Node: dcid:NoNameNode"
+    # With no name, typeOf should be next
+    assert lines[1] == "typeOf: dcid:TypeA"
+    assert not any(l.startswith("name:") for l in lines)
+
+
+def test_mcfnodes_load_from_file_without_name(tmp_path):
+    """
+    Loading MCF where a block has no `name` should succeed.
+    """
+    mcf_text = (
+        "Node: dcid:NoName\n"
+        "typeOf: dcid:TypeA\n\n"
+        "Node: dcid:WithName\n"
+        "name: \"Some Name\"\n"
+        "typeOf: dcid:TypeB\n\n"
+    )
+    path = tmp_path / "nodes.mcf"
+    path.write_text(mcf_text)
+
+    nodes = MCFNodes().load_from_mcf_file(str(path))
+    assert len(nodes.nodes) == 2
+    # First node should have no name, but have typeOf
+    first = nodes.nodes[0]
+    assert first.Node == "dcid:NoName"
+    assert getattr(first, "name", None) is None
+    assert first.typeOf == "dcid:TypeA"
+
+
 def test_mcfnodes_add_override_and_remove():
     """
     Tests adding nodes, override behavior, and removal from MCFNodes.
