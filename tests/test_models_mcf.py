@@ -58,6 +58,19 @@ def test_mcfnode_allows_missing_name_and_serializes_without_it():
     assert not any(l.startswith("name:") for l in lines)
 
 
+def test_mcfnode_strips_linebreaks_and_trailing_spaces():
+    node = MCFNode(
+        Node="dcid:TestNode \n",  # newline and trailing space
+        name="My name\n ",
+        typeOf="dcid:TypeA \n",
+        extra_field="extra value \n",
+    )
+    assert node.Node == "dcid:TestNode"
+    assert node.name == "My name"
+    assert node.typeOf == "dcid:TypeA"
+    assert node.extra_field == "extra value"
+
+
 def test_mcfnodes_load_from_file_without_name(tmp_path):
     """
     Loading MCF where a block has no `name` should succeed.

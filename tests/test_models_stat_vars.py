@@ -19,6 +19,17 @@ def test_search_description_serialization_str_and_list():
     assert 'searchDescription: "A", "B"' in sv_list.mcf
 
 
+def test_statvarnode_strips_whitespace_and_linebreaks():
+    sv = StatVarMCFNode(
+        Node="dcid:n1\n",
+        name="Var \n",
+        searchDescription=["First line\n", "Second line "],
+    )
+    assert sv.Node == "dcid:n1"
+    assert sv.name == "Var"
+    assert sv.searchDescription == ["First line", "Second line"]
+
+
 def test_rows_to_stat_var_nodes_parses_comma_separated():
     df = pd.DataFrame(
         {"Node": ["dcid:n3"], "name": ["Var"], "searchDescription": ["A, B"]}
