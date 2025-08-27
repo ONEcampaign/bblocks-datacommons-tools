@@ -6,6 +6,9 @@
 ## v0.1.0 (in development)
 - Initial release of the `bblocks-datacommons-tools` package for external preview and testing
 
+## v0.0.7 (2025-08-27)
+to MCF which could (quietly) break the data loading job.
+
 ## v0.0.6 (2025-08-14)
 - Node name is now an optional attribute. This enables easily appending data to existing Base DC Nodes.
 

@@ -4,7 +4,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional, List
 
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 from bblocks.datacommons_tools.custom_data.models.common import (
     QuotedStr,
@@ -41,6 +41,24 @@ class MCFNode(BaseModel):
     # Allow extra fields since MCF can have arbitrary properties and this
     # class is not comprehensive of all possible MCF properties.
     model_config = ConfigDict(extra="allow")
+
+    @classmethod
+    def _clean_value(cls, value):
+        """Recursively remove line breaks and trailing spaces from strings."""
+        if isinstance(value, str):
+            return value.replace("\n", "").replace("\r", "").rstrip()
+        if isinstance(value, list):
+            return [cls._clean_value(v) for v in value]
+        if isinstance(value, dict):
+            return {k: cls._clean_value(v) for k, v in value.items()}
+        return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def _strip_whitespace(cls, data):
+        if isinstance(data, dict):
+            return {k: cls._clean_value(v) for k, v in data.items()}
+        return data
 
     @property
     def mcf(self) -> str:
