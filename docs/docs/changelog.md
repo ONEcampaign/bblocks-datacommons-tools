@@ -7,8 +7,7 @@
 - Initial release of the `bblocks-datacommons-tools` package for external preview and testing
 
 ## v0.0.7 (2025-08-27)
-- Handle linebreaks and trailing spaces by removing them. This prevents errors when serialising
-to MCF which could (quitely) break the data loading job.
+to MCF which could (quietly) break the data loading job.
 
 ## v0.0.6 (2025-08-14)
 - Node name is now an optional attribute. This enables easily appending data to existing Base DC Nodes.
