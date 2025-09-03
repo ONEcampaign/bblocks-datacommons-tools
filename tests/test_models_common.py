@@ -28,7 +28,7 @@ def test_mcf_quoted_str_with_single_and_multiple_items():
     assert mcf_quoted_str(["x"]) == '"x"'
     # Multi-element list
     multi = mcf_quoted_str(["a", "b", "c"])
-    assert multi == '"a", "b", "c"'
+    assert multi == '"a","b","c"'
     # None input
     assert mcf_quoted_str(None) is None
 

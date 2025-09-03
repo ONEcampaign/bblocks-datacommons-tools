@@ -13,10 +13,10 @@ def test_search_description_serialization_str_and_list():
         name="Var",
         searchDescription=["A string, or not", "B string, other"],
     )
-    assert 'searchDescription: "A string, or not", "B string, other"' in sv_str.mcf
+    assert 'searchDescription: "A string, or not","B string, other"' in sv_str.mcf
 
     sv_list = StatVarMCFNode(Node="dcid:n2", name="Var", searchDescription=["A", "B"])
-    assert 'searchDescription: "A", "B"' in sv_list.mcf
+    assert 'searchDescription: "A","B"' in sv_list.mcf
 
 
 def test_statvarnode_strips_whitespace_and_linebreaks():
@@ -36,7 +36,7 @@ def test_rows_to_stat_var_nodes_parses_comma_separated():
     )
     nodes = _rows_to_stat_var_nodes(df)
     mcf = nodes.nodes[0].mcf
-    assert 'searchDescription: "A", "B"' in mcf
+    assert 'searchDescription: "A","B"' in mcf
 
 
 def test_rows_to_stat_var_nodes_parses_spreadsheet_lists():
@@ -49,7 +49,7 @@ def test_rows_to_stat_var_nodes_parses_spreadsheet_lists():
     )
     nodes = _rows_to_stat_var_nodes(df)
     mcf = nodes.nodes[0].mcf
-    assert 'searchDescription: "A list, comma", "second element"' in mcf
+    assert 'searchDescription: "A list, comma","second element"' in mcf
 
 
 def test_rows_to_stat_var_nodes_parses_spreadsheet_lists_no_quotes():

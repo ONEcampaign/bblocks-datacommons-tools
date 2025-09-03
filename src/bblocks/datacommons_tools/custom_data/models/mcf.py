@@ -72,7 +72,7 @@ class MCFNode(BaseModel):
 
         # Pull Node first, then sort for consistent ordering
         lines = [f"Node: {data.pop('Node')}"]
-        lines.extend(f"{k}:{v}" for k, v in data.items())
+        lines.extend(f"{k}: {v}" for k, v in data.items())
 
         return "\n".join(lines) + "\n\n"
 
