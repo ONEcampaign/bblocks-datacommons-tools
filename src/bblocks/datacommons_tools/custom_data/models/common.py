@@ -41,7 +41,7 @@ def mcf_quoted_str(value: str | list[str] | None) -> str | None:
         if len(value) < 2:
             return _ensure_quoted(value[0])
 
-        return ", ".join(_ensure_quoted(str(item)) for item in value)
+        return ",".join(_ensure_quoted(str(item)) for item in value)
 
     return _ensure_quoted(value)
 
