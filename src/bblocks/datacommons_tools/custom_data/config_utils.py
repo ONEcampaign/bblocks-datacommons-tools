@@ -17,12 +17,23 @@ def iter_config_files(directory: Path, pattern: str = "config.json") -> Iterator
             yield path
 
 
-def _merge_boolean_attrs(
-    existing: Config, new: Config, policy: DuplicatePolicy
-) -> None:
-    """Merge simple attributes that are booleans or None."""
-    for attr in ("includeInputSubdirs", "groupStatVarsByProperty"):
+def _merge_simple_attrs(existing: Config, new: Config, policy: DuplicatePolicy) -> None:
+    """Merge simple attributes that are booleans, strings, or None."""
+    for attr in (
+        "includeInputSubdirs",
+        "groupStatVarsByProperty",
+        "defaultCustomRootStatVarGroupName",
+        "customIdNamespace",
+        "customSvgPrefix",
+    ):
         _merge_attribute(existing, new, attr, policy)
+
+    _merge_sequence_attribute(
+        existing=existing,
+        new=new,
+        attribute="svHierarchyPropsBlocklist",
+        policy=policy,
+    )
 
 
 def _merge_source(
@@ -114,6 +125,31 @@ def _merge_attribute(
         setattr(existing, attribute, src_val)
 
 
+def _merge_sequence_attribute(
+    existing: Config, new: Config, attribute: str, policy: DuplicatePolicy
+) -> None:
+    """Merge a sequence attribute, normalising duplicates when overriding."""
+    src_val = getattr(new, attribute)
+    if not src_val:
+        return
+
+    tgt_val = getattr(existing, attribute)
+    if not tgt_val:
+        setattr(existing, attribute, list(dict.fromkeys(src_val)))
+        return
+
+    if tgt_val == src_val:
+        return
+
+    _handle_conflict(
+        field=attribute, target_value=tgt_val, source_value=src_val, policy=policy
+    )
+
+    if policy == "override":
+        # Preserve the order of the incoming values but drop duplicates
+        setattr(existing, attribute, list(dict.fromkeys(src_val)))
+
+
 def merge_configs(
     existing: Config, new: Config, *, policy: DuplicatePolicy = "error"
 ) -> None:
@@ -129,7 +165,7 @@ def merge_configs(
             values are encountered.
     """
     # Merge attributes that are booleans or None
-    _merge_boolean_attrs(existing=existing, new=new, policy=policy)
+    _merge_simple_attrs(existing=existing, new=new, policy=policy)
 
     # Merge the input file list
     _merge_dict(
