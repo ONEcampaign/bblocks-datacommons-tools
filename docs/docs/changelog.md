@@ -6,6 +6,10 @@
 ## v0.1.0 (in development)
 - Initial release of the `bblocks-datacommons-tools` package for external preview and testing
 
+## v0.0.9 (2025-09-17)
+- Added new configuration options, including `set_customIdNamespace`, `set_customSvgPrefix`,
+`set_defaultCustomRootStatVarGroupName` and `set_svHierarchyPropsBlocklist`.
+
 ## v0.0.8 (2025-09-03)
 - Removed white space between quoted items do defend against a bug with data loading on
 the DC side.
