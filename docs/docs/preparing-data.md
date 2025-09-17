@@ -191,6 +191,25 @@ which allows you to group statistical variables by their properties.
 manager.set_groupStatVarsByProperty(True)
 ```
 
+You can control the generated StatVar and StatVarGroup identifiers in the `config.json` file.
+
+
+```python
+manager.set_customIdNamespace("ONE")
+manager.set_customSvgPrefix("ONE/g/")  # Optional – overrides the default of "geo/g/"
+manager.set_defaultCustomRootStatVarGroupName("ONE Data")
+```
+
+Finally, you can update the hierarchy blocklist used when generating StatVar groups
+from the config. Any duplicates you provide are ignored automatically:
+
+```python
+manager.set_svHierarchyPropsBlocklist([
+    "WhoCode",
+    "aggregationDimensions",
+])
+```
+
 
 
 ## Validating and exporting files

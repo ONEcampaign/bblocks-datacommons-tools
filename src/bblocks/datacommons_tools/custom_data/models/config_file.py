@@ -16,13 +16,25 @@ class Config(BaseModel):
     Attributes:
         includeInputSubdirs: Include input subdirectories.
         groupStatVarsByProperty: Group stat vars by property.
+        defaultCustomRootStatVarGroupName: Display name for the custom root StatVarGroup.
+            Default: `"Custom Variables"`
+        customIdNamespace: Namespace token for generated ids for SVs and manual groups.
+            Default: `"custom"`.
+        customSvgPrefix: String prefix for generated custom StatVarGroup ids. If not set,
+            and `customIdNamespace` is provided, it defaults to `<customIdNamespace>/g/`.
         inputFiles: Dictionary of input files.
+        svHierarchyPropsBlocklist: Array of additional property dcids to exclude from hierarchy generation.
+            These are added to the internal blocklist used by Data Commons.
         variables: Dictionary of variables.
         sources: Dictionary of sources.
     """
 
     includeInputSubdirs: Optional[bool] = None
     groupStatVarsByProperty: Optional[bool] = None
+    defaultCustomRootStatVarGroupName: Optional[str] = None
+    customIdNamespace: Optional[str] = None
+    customSvgPrefix: Optional[str] = None
+    svHierarchyPropsBlocklist: Optional[list[str]] = None
     inputFiles: Dict[
         str,
         Annotated[

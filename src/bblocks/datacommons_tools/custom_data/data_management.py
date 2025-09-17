@@ -214,6 +214,10 @@ class CustomDataManager:
 
         include_input_subdirs = self._config.includeInputSubdirs
         group_statvars = self._config.groupStatVarsByProperty
+        root_group_name = self._config.defaultCustomRootStatVarGroupName
+        namespace = self._config.customIdNamespace
+        svg_prefix = self._config.customSvgPrefix
+        blocklist = self._config.svHierarchyPropsBlocklist
 
         return (
             f"<CustomDataManager config: "
@@ -221,7 +225,10 @@ class CustomDataManager:
             f"\n{sources_count} sources"
             f"\n{variables_count} variables"
             f"\nflags: includeInputSubdirs={include_input_subdirs}, "
-            f"groupStatVarsByProperty={group_statvars}>"
+            f"groupStatVarsByProperty={group_statvars}, "
+            f"defaultCustomRootStatVarGroupName={root_group_name}, "
+            f"customIdNamespace={namespace}, customSvgPrefix={svg_prefix}, "
+            f"svHierarchyPropsBlocklist={blocklist}>"
         )
 
     def set_includeInputSubdirs(self, set_value: bool) -> CustomDataManager:
@@ -232,6 +239,60 @@ class CustomDataManager:
     def set_groupStatVarsByProperty(self, set_value: bool) -> CustomDataManager:
         """Set the groupStatVarsByProperty attribute of the config"""
         self._config.groupStatVarsByProperty = set_value
+        return self
+
+    def set_defaultCustomRootStatVarGroupName(
+        self, name: Optional[str]
+    ) -> CustomDataManager:
+        """Set the default custom root StatVarGroup display name in the config."""
+
+        self._config.defaultCustomRootStatVarGroupName = name
+        return self
+
+    def set_customIdNamespace(
+        self, namespace: Optional[str], *, update_svg_prefix: bool = True
+    ) -> CustomDataManager:
+        """Set the namespace for generated custom Statistical Variables and groups.
+
+        Args:
+            namespace: Namespace token to use. Pass ``None`` to unset.
+            update_svg_prefix: Automatically set ``customSvgPrefix`` to
+                ``"<namespace>/g/"`` when the prefix isn't explicitly defined yet.
+                Defaults to ``True``.
+        """
+
+        self._config.customIdNamespace = namespace
+
+        if update_svg_prefix and namespace and not self._config.customSvgPrefix:
+            self._config.customSvgPrefix = f"{namespace}/g/"
+
+        return self
+
+    def set_customSvgPrefix(self, prefix: Optional[str]) -> CustomDataManager:
+        """Set the prefix used for generated custom StatVarGroup IDs."""
+
+        self._config.customSvgPrefix = prefix
+        return self
+
+    def set_svHierarchyPropsBlocklist(
+        self, blocklist: Optional[List[str]]
+    ) -> CustomDataManager:
+        """Set the StatVar hierarchy property blocklist.
+
+        Duplicate entries are removed while preserving the original order.
+        Pass ``None`` to unset the blocklist.
+        """
+
+        if blocklist is None:
+            self._config.svHierarchyPropsBlocklist = None
+        else:
+            seen: set[str] = set()
+            deduped: list[str] = []
+            for prop in blocklist:
+                if prop not in seen:
+                    seen.add(prop)
+                    deduped.append(prop)
+            self._config.svHierarchyPropsBlocklist = deduped
         return self
 
     def add_provenance(

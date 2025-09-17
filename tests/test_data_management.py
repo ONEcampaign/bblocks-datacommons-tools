@@ -63,6 +63,32 @@ def test_custom_data_manager_add_variable_to_config_and_override():
     assert manager._config.variables["v1"].name == "Var1New"
 
 
+def test_set_additional_config_fields():
+    manager = CustomDataManager()
+
+    manager.set_defaultCustomRootStatVarGroupName("My Root Group")
+    manager.set_customIdNamespace("test_ns")
+    # Default prefix should be auto-populated when namespace is set
+    assert manager._config.customSvgPrefix == "test_ns/g/"
+
+    manager.set_customSvgPrefix("test_ns/groups/")
+    manager.set_svHierarchyPropsBlocklist(
+        [
+            "statType",
+            "measurementQualifier",
+            "statType",
+        ]
+    )
+
+    assert manager._config.defaultCustomRootStatVarGroupName == "My Root Group"
+    assert manager._config.customIdNamespace == "test_ns"
+    assert manager._config.customSvgPrefix == "test_ns/groups/"
+    assert manager._config.svHierarchyPropsBlocklist == [
+        "statType",
+        "measurementQualifier",
+    ]
+
+
 def test_add_implicit_and_explicit_schema_file_registration_and_override(tmp_path):
     """
     Verifies implicit/explicit schema file registration in config and data,
@@ -301,7 +327,18 @@ def test_remove_provenance_and_source_methods():
     assert "c.csv" not in manager2._config.inputFiles
 
 
-def _make_cfg(key: str, prov: str, source: str, *, include_subdirs: bool | None = None):
+def _make_cfg(
+    key: str,
+    prov: str,
+    source: str,
+    *,
+    include_subdirs: bool | None = None,
+    group_by_property: bool | None = None,
+    root_group_name: str | None = None,
+    custom_namespace: str | None = None,
+    custom_svg_prefix: str | None = None,
+    sv_blocklist: list[str] | None = None,
+):
     input_files = {
         key: ImplicitSchemaFile(
             provenance=prov,
@@ -311,14 +348,27 @@ def _make_cfg(key: str, prov: str, source: str, *, include_subdirs: bool | None 
     }
     sources = {source: Source(url="http://src", provenances={prov: "http://p"})}
     return Config(
-        inputFiles=input_files, sources=sources, includeInputSubdirs=include_subdirs
+        inputFiles=input_files,
+        sources=sources,
+        includeInputSubdirs=include_subdirs,
+        groupStatVarsByProperty=group_by_property,
+        defaultCustomRootStatVarGroupName=root_group_name,
+        customIdNamespace=custom_namespace,
+        customSvgPrefix=custom_svg_prefix,
+        svHierarchyPropsBlocklist=sv_blocklist,
     )
 
 
 def test_merge_configs_from_directory(tmp_path):
     d1 = tmp_path / "one"
     d1.mkdir()
-    cfg1 = _make_cfg("a.csv", "p1", "s")
+    cfg1 = _make_cfg(
+        "a.csv",
+        "p1",
+        "s",
+        custom_namespace="ns",
+        sv_blocklist=["measurementDenominator"],
+    )
     cfg1.includeInputSubdirs = True
     (d1 / "config.json").write_text(
         cfg1.model_dump_json(indent=2, exclude_none=True, by_alias=True)
@@ -326,7 +376,12 @@ def test_merge_configs_from_directory(tmp_path):
 
     d2 = tmp_path / "two"
     d2.mkdir()
-    cfg2 = _make_cfg("b.csv", "p2", "s")
+    cfg2 = _make_cfg(
+        "b.csv",
+        "p2",
+        "s",
+        custom_svg_prefix="ns/custom/",
+    )
     (d2 / "config.json").write_text(
         cfg2.model_dump_json(indent=2, exclude_none=True, by_alias=True)
     )
@@ -337,6 +392,9 @@ def test_merge_configs_from_directory(tmp_path):
     provs = manager._config.sources["s"].provenances
     assert set(provs.keys()) == {"p1", "p2"}
     assert manager._config.includeInputSubdirs is True
+    assert manager._config.customIdNamespace == "ns"
+    # Blocklist remains the one provided explicitly (none defined in the second config).
+    assert manager._config.svHierarchyPropsBlocklist == ["measurementDenominator"]
 
 
 def test_merge_configs_duplicate_error(tmp_path):
@@ -356,6 +414,31 @@ def test_merge_configs_duplicate_error(tmp_path):
 
     with pytest.raises(ValueError):
         CustomDataManager.from_config_files_in_directory(tmp_path)
+
+
+def test_merge_configs_blocklist_override(tmp_path):
+    d1 = tmp_path / "one"
+    d1.mkdir()
+    cfg1 = _make_cfg(
+        "a.csv", "p1", "s", sv_blocklist=["measurementDenominator", "statType"]
+    )
+    (d1 / "config.json").write_text(
+        cfg1.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    d2 = tmp_path / "two"
+    d2.mkdir()
+    cfg2 = _make_cfg("b.csv", "p2", "s", sv_blocklist=["statType", "unit"])
+    (d2 / "config.json").write_text(
+        cfg2.model_dump_json(indent=2, exclude_none=True, by_alias=True)
+    )
+
+    manager = CustomDataManager.from_config_files_in_directory(
+        tmp_path, policy="override"
+    )
+
+    # When overriding, we take the latest list but still remove duplicates.
+    assert manager._config.svHierarchyPropsBlocklist == ["statType", "unit"]
 
 
 def test_rename_provenance_updates_all_references():
