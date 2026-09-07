@@ -43,6 +43,7 @@ from dcp_tools.custom_data.schema_tools import (
     csv_metadata_to_nodes,
     validate_mcf_file_name,
 )
+from dcp_tools.logger import logger
 
 DEFAULT_STATVAR_MCF_NAME: str = "custom_nodes.mcf"
 DEFAULT_GROUP_NAME: str = "custom_groups.mcf"
@@ -475,16 +476,19 @@ class CustomDataManager:
         """Add a Provenance MCF node linked to an existing Source.
 
         Emits a ``dcid:Provenance`` node to the MCF collection (default: ``provenance.mcf``).
-        The corresponding Source must already be registered via ``add_source``.
+        The corresponding Source is normally registered via ``add_source`` first; if it
+        isn't, a warning is logged and the node is still written.
 
         Args:
             dcid: Identifier for the provenance node. Minting rule: bare token →
                 ``dcid:provenance/<token>``; pass an already ``dcid:``-prefixed value to
                 use it verbatim. Must be a valid dcid token (no whitespace).
             url: URL of the provenance dataset.
-            source: Bare name of the parent Source (must already have been added via
-                ``add_source``). The same minting rule applies: bare name →
-                ``dcid:source/<source>``; ``dcid:``-prefixed → verbatim.
+            source: Bare name of the parent Source. The same minting rule applies:
+                bare name → ``dcid:source/<source>``; ``dcid:``-prefixed → verbatim.
+                If no matching Source has been added via ``add_source``, a warning is
+                logged and the node is still written — the Source may live in base Data
+                Commons, in which case verify it exists there yourself.
             name: Optional human-readable name of the provenance. (Optional)
             description: Optional human-readable description. (Optional)
             license: Optional license information. (Optional)
@@ -507,15 +511,15 @@ class CustomDataManager:
             CustomDataManager object
 
         Raises:
-            ValueError: If the ``source`` has not been added yet, if the ``dcid`` or
-                ``source`` token contains whitespace, if a node with the same id already
-                exists and ``override`` is False, or if the file name is invalid.
+            ValueError: If the ``dcid`` or ``source`` token contains whitespace, if a
+                node with the same id already exists and ``override`` is False, or if
+                the file name is invalid.
         """
 
         dcid = mint_dcid(prefix="provenance", token=dcid)
         url = str(url)
         source = mint_dcid(prefix="source", token=source)
-        self._require_source_exists(source)
+        self._warn_if_source_missing(source)
         props = _parse_kwargs_into_properties(locals())
         node = ProvenanceNode(**props)
 
@@ -1338,8 +1342,12 @@ class CustomDataManager:
                     expanded.append(dcid)
         return expanded
 
-    def _require_source_exists(self, source: str) -> None:
-        """Raise ValueError if no Source MCF node with id ``source`` exists.
+    def _warn_if_source_missing(self, source: str) -> None:
+        """Log a warning if no Source MCF node with id ``source`` exists.
+
+        A Provenance may legitimately reference a Source that lives in base Data
+        Commons rather than in this bundle, so a missing Source is not an error.
+        The caller is responsible for confirming that the referenced Source exists.
 
         Args:
             source: The minted dcid for the source.
@@ -1349,9 +1357,10 @@ class CustomDataManager:
             for nodes in self._mcf_nodes.values()
             for n in nodes.nodes
         ):
-            raise ValueError(
-                f"Source '{source}' not found. "
-                f"Call add_source(dcid={source!r}, url=...) before add_provenance()."
+            logger.warning(
+                f"Source '{source}' is not registered in this bundle. Verify that it "
+                f"exists in base Data Commons, or call "
+                f"add_source(dcid={source!r}, url=...) to add it here."
             )
 
     def _validate_provenances(self) -> None:

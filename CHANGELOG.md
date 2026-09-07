@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `add_provenance` now warns instead of raising when `source` isn't registered in the bundle, so a
+  `Provenance` can reference a `Source` that already exists in base Data Commons.
+
 ## [1.0.0a3] - 2026-08-19
 
 ### Added

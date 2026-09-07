@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -31,10 +32,6 @@ def test_custom_data_manager_add_provenance_and_override():
     """
     manager = CustomDataManager()
 
-    # add_provenance without a prior add_source must raise
-    with pytest.raises(ValueError):
-        manager.add_provenance(dcid="pA", url="http://prov", source="new_source")
-
     # add_source then add_provenance succeeds
     manager.add_source(dcid="new_source", url="http://src")
     manager.add_provenance(dcid="pA", url="http://prov", source="new_source")
@@ -64,6 +61,36 @@ def test_custom_data_manager_add_provenance_and_override():
     # url is stored raw; QuotedStr serialization wraps it in quotes at dump time
     assert updated_prov.url == "http://prov2"
     assert updated_prov.model_dump()["url"] == '"http://prov2"'
+
+
+def test_add_provenance_warns_when_source_missing():
+    """An unregistered source warns but still writes the Provenance node."""
+    manager = CustomDataManager()
+
+    with patch("dcp_tools.custom_data.data_management.logger") as mock_logger:
+        manager.add_provenance(dcid="pA", url="http://prov", source="base_dc_source")
+
+    mock_logger.warning.assert_called_once()
+    assert "dcid:source/base_dc_source" in mock_logger.warning.call_args.args[0]
+
+    prov_node = next(
+        n
+        for n in manager._mcf_nodes["provenance.mcf"].nodes
+        if n.type_of == "dcid:Provenance"
+    )
+    assert prov_node.dcid == "dcid:provenance/pA"
+    assert prov_node.source == "dcid:source/base_dc_source"
+
+
+def test_add_provenance_does_not_warn_when_source_registered():
+    """A registered source produces no warning."""
+    manager = CustomDataManager()
+    manager.add_source(dcid="new_source", url="http://src")
+
+    with patch("dcp_tools.custom_data.data_management.logger") as mock_logger:
+        manager.add_provenance(dcid="pA", url="http://prov", source="new_source")
+
+    mock_logger.warning.assert_not_called()
 
 
 def test_add_source_metadata_lands_on_node():
