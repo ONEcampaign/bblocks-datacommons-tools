@@ -55,7 +55,9 @@ manager.add_provenance(
 
 This writes two nodes to `provenance.mcf` (the default file for both methods): a `dcid:Source`
 node at `dcid:source/ONEData`, and a `dcid:Provenance` node at `dcid:provenance/ONEClimateFinance`
-linking to it. `add_provenance` raises `ValueError` if `source` isn't registered yet.
+linking to it. If `source` isn't registered in the bundle, `add_provenance` logs a warning and
+writes the node anyway — a `Provenance` may point at a `Source` that already exists in base Data
+Commons, in which case it's on you to confirm that it does.
 
 !!! note
     `dcid` is the node's identifier and gets minted: a bare token becomes `dcid:source/<token>`
