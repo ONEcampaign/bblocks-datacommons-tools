@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.0a4 (2026-09-07)
+
+- `add_provenance` now warns instead of raising when `source` isn't registered in the bundle,
+  so a `Provenance` can reference a `Source` that already exists in base Data Commons.
+
 ## v1.0.0a3 (2026-08-19)
 
 - Added `add_node(dcid=..., name=..., type_of=...)` to `CustomDataManager`, for MCF nodes with a

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0a4] - 2026-09-07
+
 ### Changed
 - `add_provenance` now warns instead of raising when `source` isn't registered in the bundle, so a
   `Provenance` can reference a `Source` that already exists in base Data Commons.
@@ -288,4 +290,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.0a1]: https://github.com/ONEcampaign/dcp-tools/compare/v0.1.1...v1.0.0a1
 [1.0.0a2]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a1...v1.0.0a2
 [1.0.0a3]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a2...v1.0.0a3
-[unreleased]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a3...HEAD
+[1.0.0a4]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a3...v1.0.0a4
+[unreleased]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a4...HEAD
