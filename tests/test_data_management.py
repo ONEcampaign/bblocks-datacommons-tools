@@ -388,6 +388,24 @@ def test_export_all_overwrites_correctly(tmp_path):
     assert (tmp_path / "custom_nodes.mcf").read_text() == ""
 
 
+def test_export_all_empties_the_directory_first(tmp_path):
+    """Everything already in the directory is deleted, at any depth."""
+    (tmp_path / "stale.csv").write_text("col\n1\n")
+    (tmp_path / "nodes.mcf").write_text("also gone")
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "stale.csv").write_text("col\n1\n")
+
+    manager = CustomDataManager()
+    manager.add_variable_to_mcf(dcid="MyVariable", name="My Variable")
+    manager.export_all(tmp_path)
+
+    assert (tmp_path / "custom_nodes.mcf").exists()
+    assert (tmp_path / "config.json").exists()
+    assert not (tmp_path / "stale.csv").exists()
+    assert not (tmp_path / "nodes.mcf").exists()
+    assert not (tmp_path / "sub").exists()
+
+
 def test_add_variable_group_to_mcf_and_override():
     """
     Checks StatVarGroup node addition and override behavior.

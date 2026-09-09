@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LOAD_JOB_SERVICE_ACCOUNT` -> `INGESTION_SERVICE_ACCOUNT`. The old names are no longer accepted.
 - **Breaking:** `run_data_load` is renamed `run_ingestion_workflow` and the `dataload` CLI command
   is renamed `ingest`. `imports` is now keyword-only on the renamed function.
+- **Breaking:** `export_all` now empties the target directory before writing, so a renamed or
+  removed input file no longer lingers and gets ingested. A missing directory is created.
 
 **Migration:**
 

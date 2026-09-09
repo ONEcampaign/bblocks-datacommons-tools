@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
@@ -1544,9 +1545,9 @@ class CustomDataManager:
     ) -> None:
         """Export the config, MCF files, and data to a directory
 
-        ``export_all`` overwrites the complete bundle. To export only the config
-        (deferring MCF export), use ``export_config`` directly. To export a single MCF
-        file, use `export_mcf_file`.
+        ``export_all`` empties ``dir_path`` and then writes the complete bundle. To
+        export only the config (deferring MCF export), use ``export_config`` directly.
+        To export a single MCF file, use `export_mcf_file`.
 
         Args:
             dir_path: Path to the directory where the config and data will be exported.
@@ -1560,6 +1561,11 @@ class CustomDataManager:
 
         if validate_data:
             self.validate_all_input_files_have_data()
+
+        dir_path = Path(dir_path)
+        if dir_path.exists():
+            shutil.rmtree(dir_path)
+        dir_path.mkdir(parents=True)
 
         self.export_config(dir_path)
 
