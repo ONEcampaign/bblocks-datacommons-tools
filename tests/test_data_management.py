@@ -389,7 +389,7 @@ def test_export_all_overwrites_correctly(tmp_path):
 
 
 def test_export_all_empties_the_directory_first(tmp_path):
-    """Everything already in the directory is deleted, at any depth."""
+    """Every file already in the directory is deleted, at any depth."""
     (tmp_path / "stale.csv").write_text("col\n1\n")
     (tmp_path / "nodes.mcf").write_text("also gone")
     (tmp_path / "sub").mkdir()
@@ -403,7 +403,9 @@ def test_export_all_empties_the_directory_first(tmp_path):
     assert (tmp_path / "config.json").exists()
     assert not (tmp_path / "stale.csv").exists()
     assert not (tmp_path / "nodes.mcf").exists()
-    assert not (tmp_path / "sub").exists()
+    assert not (tmp_path / "sub" / "stale.csv").exists()
+    # Directories are left in place; only their files are removed.
+    assert (tmp_path / "sub").exists()
 
 
 def test_export_all_keeps_previous_bundle_when_config_is_invalid(tmp_path):
