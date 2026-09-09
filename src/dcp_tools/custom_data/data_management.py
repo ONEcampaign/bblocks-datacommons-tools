@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
@@ -1568,8 +1569,10 @@ class CustomDataManager:
 
         dir_path = Path(dir_path)
         dir_path.mkdir(parents=True, exist_ok=True)
-        for existing in dir_path.rglob("*"):
-            if existing.is_file():
+        for existing in dir_path.iterdir():
+            if existing.is_dir() and not existing.is_symlink():
+                shutil.rmtree(existing)
+            else:
                 existing.unlink()
 
         self.export_config(dir_path)

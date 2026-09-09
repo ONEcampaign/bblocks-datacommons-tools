@@ -389,23 +389,18 @@ def test_export_all_overwrites_correctly(tmp_path):
 
 
 def test_export_all_empties_the_directory_first(tmp_path):
-    """Every file already in the directory is deleted, at any depth."""
+    """Everything already in the directory is deleted, at any depth."""
     (tmp_path / "stale.csv").write_text("col\n1\n")
-    (tmp_path / "nodes.mcf").write_text("also gone")
-    (tmp_path / "sub").mkdir()
-    (tmp_path / "sub" / "stale.csv").write_text("col\n1\n")
+    (tmp_path / "custom_nodes.mcf").mkdir()
+    (tmp_path / "custom_nodes.mcf" / "nodes.mcf").write_text("also gone")
 
     manager = CustomDataManager()
     manager.add_variable_to_mcf(dcid="MyVariable", name="My Variable")
     manager.export_all(tmp_path)
 
-    assert (tmp_path / "custom_nodes.mcf").exists()
     assert (tmp_path / "config.json").exists()
+    assert (tmp_path / "custom_nodes.mcf").is_file()
     assert not (tmp_path / "stale.csv").exists()
-    assert not (tmp_path / "nodes.mcf").exists()
-    assert not (tmp_path / "sub" / "stale.csv").exists()
-    # Directories are left in place; only their files are removed.
-    assert (tmp_path / "sub").exists()
 
 
 def test_export_all_keeps_previous_bundle_when_config_is_invalid(tmp_path):
