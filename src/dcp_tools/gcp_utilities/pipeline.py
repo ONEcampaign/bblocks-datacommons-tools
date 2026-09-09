@@ -9,7 +9,6 @@ from os import PathLike
 from pathlib import Path
 
 from dcp_tools.gcp_utilities.clients import get_gcs_client
-from dcp_tools.gcp_utilities.jobs import run_data_load_job
 from dcp_tools.gcp_utilities.settings import KGSettings
 from dcp_tools.gcp_utilities.storage import (
     sync_directory_to_gcs,
@@ -44,13 +43,3 @@ def upload_to_cloud_storage(
         directory=directory,
         gcs_folder_name=settings.gcs_input_folder_path,
     )
-
-
-def run_data_load(settings: KGSettings, imports: str | None = None) -> None:
-    """Run the data load job.
-
-    Args:
-        settings (KGSettings): The settings for the Knowledge Graph.
-        imports (str | None): Comma-separated list of imports to load. Defaults to all imports.
-    """
-    run_data_load_job(settings=settings, imports=imports)

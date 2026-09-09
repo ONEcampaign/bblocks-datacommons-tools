@@ -5,6 +5,11 @@
 - **Breaking:** `license_type` and `curator` are now DCID references, written as
   `licenseType: dcid:<token>` instead of a quoted string. Bare tokens passed to `add_source` /
   `add_provenance` are minted; `SourceNode` / `ProvenanceNode` still require the `dcid:` prefix.
+- **Breaking:** renamed the ingestion settings to match the DCP Terraform outputs:
+  `LOAD_JOB_NAME` -> `INGESTION_PREP_JOB_NAME`, `LOAD_JOB_REGION` -> `GCP_REGION`, and
+  `LOAD_JOB_SERVICE_ACCOUNT` -> `INGESTION_SERVICE_ACCOUNT`. The old names are no longer accepted.
+- **Breaking:** renamed `run_data_load` to `run_ingestion_workflow`, and the `dataload` CLI
+  command to `ingest`.
 - Added `license_type` and `license_attribution` to `add_source`, and `source_data_url` and
   `license_attribution` to `add_provenance`.
 

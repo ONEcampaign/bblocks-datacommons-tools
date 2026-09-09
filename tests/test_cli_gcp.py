@@ -23,38 +23,38 @@ def test_upload_command_invokes_pipeline(tmp_path: Path) -> None:
         )
 
 
-def test_dataload_command_invokes_pipeline() -> None:
+def test_ingest_command_invokes_workflow() -> None:
     with (
         patch("dcp_tools.cli.common.get_kg_settings") as get,
-        patch("dcp_tools.cli.data_load.run_data_load") as run,
+        patch("dcp_tools.cli.ingest.run_ingestion_workflow") as run,
     ):
         get.return_value = Mock()
-        exit_code = main(["dataload", "--env-file", "e"])
+        exit_code = main(["ingest", "--env-file", "e"])
         assert exit_code == 0
         get.assert_called_once_with(env_file=Path("e"))
         run.assert_called_once_with(settings=get.return_value, imports=None)
 
 
-def test_dataload_command_defaults_to_all_imports() -> None:
+def test_ingest_command_defaults_to_all_imports() -> None:
     with (
         patch("dcp_tools.cli.common.get_kg_settings") as get,
-        patch("dcp_tools.gcp_utilities.jobs.IngestionJobClient") as client,
+        patch("dcp_tools.gcp_utilities.ingestion.IngestionJobClient") as client,
     ):
         get.return_value = Mock()
-        exit_code = main(["dataload", "--env-file", "e"])
+        exit_code = main(["ingest", "--env-file", "e"])
         assert exit_code == 0
         client.return_value.start_workflow.assert_called_once_with(
             imports="ALL_IMPORTS"
         )
 
 
-def test_dataload_command_invokes_pipeline_with_names_imports() -> None:
+def test_ingest_command_invokes_workflow_with_named_imports() -> None:
     with (
         patch("dcp_tools.cli.common.get_kg_settings") as get,
-        patch("dcp_tools.cli.data_load.run_data_load") as run,
+        patch("dcp_tools.cli.ingest.run_ingestion_workflow") as run,
     ):
         get.return_value = Mock()
-        exit_code = main(["dataload", "--env-file", "e", "--imports", "test_import"])
+        exit_code = main(["ingest", "--env-file", "e", "--imports", "test_import"])
         assert exit_code == 0
         get.assert_called_once_with(env_file=Path("e"))
         run.assert_called_once_with(settings=get.return_value, imports="test_import")
@@ -64,8 +64,8 @@ def test_pipeline_command_runs_all(tmp_path: Path) -> None:
     directory = tmp_path / "data"
     with (
         patch("dcp_tools.cli.common.get_kg_settings") as get,
-        patch("dcp_tools.cli.data_load_pipeline.upload_to_cloud_storage") as upload,
-        patch("dcp_tools.cli.data_load_pipeline.run_data_load") as load,
+        patch("dcp_tools.cli.pipeline.upload_to_cloud_storage") as upload,
+        patch("dcp_tools.cli.pipeline.run_ingestion_workflow") as load,
     ):
         get.return_value = Mock()
         exit_code = main(

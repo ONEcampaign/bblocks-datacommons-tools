@@ -3,16 +3,16 @@
 `dcp-tools` is the command-line entry point for the functions documented under
 [Preparing data](preparing-data.md) and [Loading data](loading-data.md). It converts a CSV into
 MCF, uploads a prepared export directory to Google Cloud Storage, and triggers the DCP ingestion
-job. Each subcommand parses its arguments and calls straight into the Python API. It adds no
+workflow. Each subcommand parses its arguments and calls straight into the Python API. It adds no
 behavior of its own.
 
-There are four subcommands and no subcommand groups: `csv2mcf`, `upload`, `dataload`, and
+There are four subcommands and no subcommand groups: `csv2mcf`, `upload`, `ingest`, and
 `pipeline`. Run any of them as `dcp-tools <command> ...` or `python -m dcp_tools <command> ...`.
 Every command, including `dcp-tools` itself, accepts `-h`/`--help` for its full option list.
 
 ## Global options
 
-`upload`, `dataload`, and `pipeline` connect to Google Cloud through a `KGSettings` object (see
+`upload`, `ingest`, and `pipeline` connect to Google Cloud through a `KGSettings` object (see
 [Loading data](loading-data.md)). Two flags control where those settings come from:
 
 - **`--settings-file PATH`** — a JSON file using the settings' alias keys, all uppercase
@@ -28,28 +28,28 @@ settings are read from a `.env` file in the current directory.
 {
   "LOCAL_PATH": "./export",
   "GCP_PROJECT_ID": "one-climate-finance",
+  "GCP_REGION": "us-central1",
   "GCS_BUCKET_NAME": "one-dcp-import",
   "GCS_INPUT_FOLDER_PATH": "climate-finance",
   "GCS_OUTPUT_FOLDER_PATH": "climate-finance/output",
-  "LOAD_JOB_REGION": "us-central1",
-  "LOAD_JOB_NAME": "dcp-prep-job",
-  "INGESTION_WORKFLOW_NAME": "dcp-prep-workflow"
+  "INGESTION_PREP_JOB_NAME": "dcp-prep-job",
+  "INGESTION_WORKFLOW_NAME": "dcp-ingestion-workflow"
 }
 ```
 
 ```bash title="customDC.env"
 LOCAL_PATH=./export
 GCP_PROJECT_ID=one-climate-finance
+GCP_REGION=us-central1
 GCS_BUCKET_NAME=one-dcp-import
 GCS_INPUT_FOLDER_PATH=climate-finance
 GCS_OUTPUT_FOLDER_PATH=climate-finance/output
-LOAD_JOB_REGION=us-central1
-LOAD_JOB_NAME=dcp-prep-job
-INGESTION_WORKFLOW_NAME=dcp-prep-workflow
+INGESTION_PREP_JOB_NAME=dcp-prep-job
+INGESTION_WORKFLOW_NAME=dcp-ingestion-workflow
 ```
 
 !!! note
-    `GCP_CREDENTIALS` and `LOAD_JOB_SERVICE_ACCOUNT` are optional and omitted above. Without
+    `GCP_CREDENTIALS` and `INGESTION_SERVICE_ACCOUNT` are optional and omitted above. Without
     `GCP_CREDENTIALS`, GCP calls fall back to Application Default Credentials
     (`gcloud auth application-default login`).
 
@@ -171,39 +171,39 @@ $ dcp-tools upload --settings-file customDC.json --directory export/
 2026-07-21 09:14:03 | INFO     | dcp-tools | Uploaded 3 files to climate-finance in GCS bucket one-dcp-import
 ```
 
-## `dcp-tools dataload`
+## `dcp-tools ingest`
 
-Triggers the DCP ingestion job that loads uploaded files into the knowledge graph, wrapping
-`run_data_load`.
+Triggers the DCP ingestion workflow that loads uploaded files into the knowledge graph, wrapping
+`run_ingestion_workflow`.
 
 ```
-dcp-tools dataload [--settings-file PATH] [--env-file PATH] [--imports a,b,c]
+dcp-tools ingest [--settings-file PATH] [--env-file PATH] [--imports a,b,c]
 ```
 
 **Options**
 
 - **`--settings-file PATH`**, **`--env-file PATH`** — see [Global options](#global-options).
 - **`--imports a,b,c`** (default: every import) — comma-separated import names to scope the run
-  to. Omit it to load everything under the configured GCS input folder.
+  to. Omit it to ingest everything under the configured GCS input folder.
 
 **Example**
 
 ```
-$ dcp-tools dataload --settings-file customDC.json --imports climate-finance
-2026-07-21 09:15:10 | INFO     | dcp-tools | Starting data load job 'dcp-prep-job'
-2026-07-21 09:15:11 | INFO     | dcp-tools | Started job 'projects/one-climate-finance/locations/us-central1/jobs/dcp-prep-job'
+$ dcp-tools ingest --settings-file customDC.json --imports climate-finance
+2026-07-21 09:15:10 | INFO     | dcp-tools | Starting data ingestion workflow 'dcp-ingestion-workflow'
+2026-07-21 09:15:11 | INFO     | dcp-tools | Started workflow execution 'projects/one-climate-finance/locations/us-central1/workflows/dcp-ingestion-workflow/executions/a1b2c3'
 ```
 
 !!! note
-    `dataload` only triggers the ingestion job. It doesn't upload anything first, so the files it
-    loads must already be in Cloud Storage (run `upload` beforehand, or use `pipeline`). Once the
-    job finishes, the platform ingests and serves the new data on its own. There's no separate
+    `ingest` only triggers the ingestion workflow. It doesn't upload anything first, so the files
+    it loads must already be in Cloud Storage (run `upload` beforehand, or use `pipeline`). Once
+    the workflow finishes, the platform serves the new data on its own. There's no separate
     redeploy or restart command to run.
 
 ## `dcp-tools pipeline`
 
-Runs `upload` followed by `dataload` for every import in one call, wrapping
-`upload_to_cloud_storage` then `run_data_load`.
+Runs `upload` followed by `ingest` for every import in one call, wrapping
+`upload_to_cloud_storage` then `run_ingestion_workflow`.
 
 ```
 dcp-tools pipeline [--settings-file PATH] [--env-file PATH] [--directory PATH] [--sync]
@@ -215,8 +215,8 @@ dcp-tools pipeline [--settings-file PATH] [--env-file PATH] [--directory PATH] [
   flags and defaults as [`upload`](#dcp-tools-upload).
 
 !!! warning "Heads up"
-    `pipeline` has no `--imports` flag. It always calls `dataload` with no import filter, loading
-    everything. To load a subset of imports, run `upload` and `dataload --imports=...` as two
+    `pipeline` has no `--imports` flag. It always calls `ingest` with no import filter, loading
+    everything. To load a subset of imports, run `upload` and `ingest --imports=...` as two
     separate commands instead.
 
 **Example**
@@ -227,8 +227,8 @@ $ dcp-tools pipeline --settings-file customDC.json --directory export/
 2026-07-21 09:16:40 | INFO     | dcp-tools | Uploaded export/provenance.mcf to climate-finance/provenance.mcf
 2026-07-21 09:16:41 | INFO     | dcp-tools | Uploaded export/custom_nodes.mcf to climate-finance/custom_nodes.mcf
 2026-07-21 09:16:41 | INFO     | dcp-tools | Uploaded 3 files to climate-finance in GCS bucket one-dcp-import
-2026-07-21 09:16:41 | INFO     | dcp-tools | Starting data load job 'dcp-prep-job'
-2026-07-21 09:16:42 | INFO     | dcp-tools | Started job 'projects/one-climate-finance/locations/us-central1/jobs/dcp-prep-job'
+2026-07-21 09:16:41 | INFO     | dcp-tools | Starting data ingestion workflow 'dcp-ingestion-workflow'
+2026-07-21 09:16:42 | INFO     | dcp-tools | Started workflow execution 'projects/one-climate-finance/locations/us-central1/workflows/dcp-ingestion-workflow/executions/a1b2c3'
 ```
 
 ## Related

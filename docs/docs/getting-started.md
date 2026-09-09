@@ -279,4 +279,4 @@ flags: importName=one_climate_finance, includeInputSubdirs=None, groupStatVarsBy
 
 - **[Preparing data](./preparing-data.md)**. The full `CustomDataManager` catalogue: schema-node builders, multi-entity dimensions, vertical specs, config merging.
 - **[Why config.json and MCF](./dc-schemas.md)**. The reasoning behind the `config.json`/MCF split and the column-mapping shapes.
-- **[Loading data](./loading-data.md)**. Upload `one_climate_finance/` to Google Cloud Storage and trigger the ingestion job.
+- **[Loading data](./loading-data.md)**. Upload `one_climate_finance/` to Google Cloud Storage and trigger the ingestion workflow.

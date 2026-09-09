@@ -5,8 +5,8 @@ from collections.abc import Iterable
 
 from dcp_tools.cli import (
     csv2mcf,
-    data_load,
-    data_load_pipeline,
+    ingest,
+    pipeline,
     upload,
 )
 
@@ -21,8 +21,8 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     csv2mcf.add_parser(subparsers)
     upload.add_parser(subparsers)
-    data_load.add_parser(subparsers)
-    data_load_pipeline.add_parser(subparsers)
+    ingest.add_parser(subparsers)
+    pipeline.add_parser(subparsers)
     return parser
 
 

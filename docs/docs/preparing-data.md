@@ -455,6 +455,6 @@ To export pieces individually instead of all at once:
 - [Why config.json and MCF](dc-schemas.md): why column mappings and dcids are shaped the way they
   are.
 - [Loading data](loading-data.md): upload the exported bundle to Google Cloud Storage and trigger
-  the ingestion job.
+  the ingestion workflow.
 - [CLI tools](cli-tools.md): the `dcp-tools csv2mcf` command for CSV-to-MCF conversion outside a
   `CustomDataManager`.
