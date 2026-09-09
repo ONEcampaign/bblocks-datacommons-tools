@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Breaking:** `license_type` and `curator` are now DCID references, written as
+  `licenseType: dcid:<token>` instead of a quoted string. Bare tokens passed to `add_source` /
+  `add_provenance` are minted; `SourceNode` / `ProvenanceNode` still require the `dcid:` prefix.
+- Added `license_type` and `license_attribution` to `add_source`, and `source_data_url` and
+  `license_attribution` to `add_provenance`.
+
 ## v1.0.0a4 (2026-09-07)
 
 - `add_provenance` now warns instead of raising when `source` isn't registered in the bundle,

@@ -65,9 +65,11 @@ Commons, in which case it's on you to confirm that it does.
     contain whitespace. `name` is the optional human-readable label, where spaces are fine. See
     [Why config.json and MCF](dc-schemas.md) for why the importer needs dcids shaped this way.
 
-Both methods take `description`, `license`, and `isPartOf`. `add_provenance` additionally takes
-`licenseType`, `lastDataRefreshDate`, `nextDataRefreshDate`, `nextSourceReleaseDate`,
-`sourceReleaseFrequency`, `earliestObservationDate`, `latestObservationDate`, and `curator`. Use
+Both methods take `description`, `license`, `license_type`, `license_attribution`, and
+`is_part_of`. `add_provenance` additionally takes `source_data_url`, `last_data_refresh_date`,
+`next_data_refresh_date`, `next_source_release_date`, `source_release_frequency`,
+`earliest_observation_date`, `latest_observation_date`, and `curator`. `license_type` and
+`curator` are DCID references — a bare token becomes `dcid:<token>`. Use
 `additional_properties={"someProperty": "value"}` for anything else. Pass `override=True` to
 replace a node that's already registered under the same name.
 

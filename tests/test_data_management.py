@@ -102,6 +102,8 @@ def test_add_source_metadata_lands_on_node():
         url="http://mysource.org",
         description="A test source",
         license="CC-BY-4.0",
+        license_type="CreativeCommonsAttribution4_0",
+        license_attribution="Data provided by My Source",
     )
     nodes = manager._mcf_nodes["provenance.mcf"].nodes
     node = next(n for n in nodes if n.type_of == "dcid:Source")
@@ -111,6 +113,8 @@ def test_add_source_metadata_lands_on_node():
     # QuotedStr fields are stored raw; quotes applied at serialization
     assert node.description == "A test source"
     assert node.license == "CC-BY-4.0"
+    assert node.license_type == "dcid:CreativeCommonsAttribution4_0"
+    assert node.license_attribution == "Data provided by My Source"
 
 
 def test_add_provenance_metadata_lands_on_node():
@@ -123,7 +127,11 @@ def test_add_provenance_metadata_lands_on_node():
         url="http://provx.org",
         source="SrcX",
         description="Prov desc",
+        source_data_url="http://provx.org/data.csv",
+        license_type="CreativeCommonsAttribution4_0",
+        license_attribution="Data provided by Prov X",
         last_data_refresh_date="2024-01-01",
+        curator="dcid:MyOrganisation",
     )
     nodes = manager._mcf_nodes["provenance.mcf"].nodes
     prov_node = next(n for n in nodes if n.type_of == "dcid:Provenance")
@@ -132,7 +140,11 @@ def test_add_provenance_metadata_lands_on_node():
     assert prov_node.dcid == "dcid:provenance/ProvX"
     assert prov_node.name == "Prov X"
     assert prov_node.description == "Prov desc"
+    assert prov_node.source_data_url == "http://provx.org/data.csv"
+    assert prov_node.license_attribution == "Data provided by Prov X"
     assert prov_node.last_data_refresh_date == "2024-01-01"
+    assert prov_node.license_type == "dcid:CreativeCommonsAttribution4_0"
+    assert prov_node.curator == "dcid:MyOrganisation"
 
 
 def test_validate_provenances_raises_for_unknown_provenance(tmp_path):

@@ -407,6 +407,8 @@ class CustomDataManager:
         name: str | None = None,
         description: str | None = None,
         license: str | None = None,
+        license_type: str | None = None,
+        license_attribution: str | None = None,
         is_part_of: str | None = None,
         additional_properties: dict[str, str] | None = None,
         override: bool = False,
@@ -426,6 +428,9 @@ class CustomDataManager:
             name: Optional human-readable name of the source. (Optional)
             description: Optional human-readable description. (Optional)
             license: Optional license information. (Optional)
+            license_type: Optional DCID of the license the data is published under,
+                A bare token is minted to ``dcid:<token>``. (Optional)
+            license_attribution: Optional attribution text required by the license. (Optional)
             is_part_of: Optional DCID of a parent source. (Optional)
             additional_properties: Additional MCF properties, passed as a dictionary
                 with the target property as key. (Optional)
@@ -443,6 +448,8 @@ class CustomDataManager:
 
         dcid = mint_dcid(prefix="source", token=dcid)
         url = str(url)
+        if license_type is not None:
+            license_type = ensure_dcid(license_type)
         props = _parse_kwargs_into_properties(locals())
         node = SourceNode(**props)
 
@@ -459,8 +466,10 @@ class CustomDataManager:
         source: str,
         name: str | None = None,
         description: str | None = None,
+        source_data_url: str | None = None,
         license: str | None = None,
         license_type: str | None = None,
+        license_attribution: str | None = None,
         last_data_refresh_date: str | None = None,
         next_data_refresh_date: str | None = None,
         next_source_release_date: str | None = None,
@@ -491,15 +500,19 @@ class CustomDataManager:
                 Commons, in which case verify it exists there yourself.
             name: Optional human-readable name of the provenance. (Optional)
             description: Optional human-readable description. (Optional)
+            source_data_url: Optional URL of the underlying data files. (Optional)
             license: Optional license information. (Optional)
-            license_type: Optional license type. (Optional)
+            license_type: Optional DCID of the license the data is published under. A bare
+                token is minted to ``dcid:<token>``. (Optional)
+            license_attribution: Optional attribution text required by the license. (Optional)
             last_data_refresh_date: Optional date of last data refresh. (Optional)
             next_data_refresh_date: Optional date of next expected data refresh. (Optional)
             next_source_release_date: Optional date of next source release. (Optional)
             source_release_frequency: Optional frequency of source releases. (Optional)
             earliest_observation_date: Optional earliest observation date. (Optional)
             latest_observation_date: Optional latest observation date. (Optional)
-            curator: Optional curator of the dataset. (Optional)
+            curator: Optional DCID of the curator of the dataset. A bare token is minted to
+                ``dcid:<token>``. (Optional)
             is_part_of: Optional DCID of a parent provenance. (Optional)
             additional_properties: Additional MCF properties, passed as a dictionary
                 with the target property as key. (Optional)
@@ -520,6 +533,10 @@ class CustomDataManager:
         url = str(url)
         source = mint_dcid(prefix="source", token=source)
         self._warn_if_source_missing(source)
+        if license_type is not None:
+            license_type = ensure_dcid(license_type)
+        if curator is not None:
+            curator = ensure_dcid(curator)
         props = _parse_kwargs_into_properties(locals())
         node = ProvenanceNode(**props)
 
