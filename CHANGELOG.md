@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `license_type` and `license_attribution` on `add_source`, and `source_data_url` and
+  `license_attribution` on `add_provenance`.
+
+### Changed
+- **Breaking:** `license_type` and `curator` are now DCID references, written as
+  `licenseType: dcid:<token>` instead of a quoted string. Bare tokens passed to `add_source` /
+  `add_provenance` are minted; `SourceNode` / `ProvenanceNode` still require the `dcid:` prefix.
+
 ## [1.0.0a4] - 2026-09-07
 
 ### Changed

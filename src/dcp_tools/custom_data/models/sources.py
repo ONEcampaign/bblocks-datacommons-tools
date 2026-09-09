@@ -17,12 +17,16 @@ class SourceNode(Node):
         type_of: Fixed type indicating this is a Source (``dcid:Source``).
         url: URL of the data source.
         license: Optional license information.
+        license_type: Optional DCID of the license the data is published under.
+        license_attribution: Optional attribution text required by the license.
         is_part_of: Optional DCID of a parent source.
     """
 
     type_of: Literal["dcid:Source"] = "dcid:Source"
     url: QuotedStr | None = None
     license: QuotedStr | None = None
+    license_type: Dcid | None = None
+    license_attribution: QuotedStr | None = None
     is_part_of: Dcid | None = None
 
 
@@ -37,30 +41,34 @@ class ProvenanceNode(Node):
 
         # Provenance-specific
         type_of: Fixed type indicating this is a Provenance (``dcid:Provenance``).
-        url: URL of the provenance dataset.
+        url: Optional URL of the provenance landing page.
         source: DCID of the parent Source node.
+        source_data_url: Optional URL of the source data.
         license: Optional license information.
-        license_type: Optional license type.
+        license_type: Optional DCID of the license the data is published under.
+        license_attribution: Optional attribution text required by the license.
         last_data_refresh_date: Optional date of last data refresh.
         next_data_refresh_date: Optional date of next expected data refresh.
         next_source_release_date: Optional date of next source release.
         source_release_frequency: Optional frequency of source releases.
         earliest_observation_date: Optional earliest observation date in the dataset.
         latest_observation_date: Optional latest observation date in the dataset.
-        curator: Optional curator of the dataset.
+        curator: Optional DCID of the curator of the dataset.
         is_part_of: Optional DCID of a parent provenance.
     """
 
     type_of: Literal["dcid:Provenance"] = "dcid:Provenance"
     url: QuotedStr | None = None
     source: Dcid | None = None
+    source_data_url: QuotedStr | None = None
     license: QuotedStr | None = None
-    license_type: QuotedStr | None = None
+    license_type: Dcid | None = None
+    license_attribution: QuotedStr | None = None
     last_data_refresh_date: QuotedStr | None = None
     next_data_refresh_date: QuotedStr | None = None
     next_source_release_date: QuotedStr | None = None
     source_release_frequency: QuotedStr | None = None
     earliest_observation_date: QuotedStr | None = None
     latest_observation_date: QuotedStr | None = None
-    curator: QuotedStr | None = None
+    curator: Dcid | None = None
     is_part_of: Dcid | None = None

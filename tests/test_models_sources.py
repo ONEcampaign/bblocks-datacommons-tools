@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from dcp_tools.custom_data.models.sources import ProvenanceNode, SourceNode
 
 
@@ -8,6 +11,8 @@ def test_source_to_mcf():
         description="Description of My Source",
         url="https://example.com",
         license="https://example.com/license",
+        license_type="dcid:MyLicenseType",
+        license_attribution="Data provided by My Source",
         is_part_of="dcid:ParentSource",
     )
 
@@ -18,6 +23,8 @@ def test_source_to_mcf():
         'description: "Description of My Source"\n'
         'url: "https://example.com"\n'
         'license: "https://example.com/license"\n'
+        "licenseType: dcid:MyLicenseType\n"
+        'licenseAttribution: "Data provided by My Source"\n'
         "isPartOf: dcid:ParentSource\n"
         "\n"
     )
@@ -30,8 +37,10 @@ def test_provenance_to_mcf():
         description="Description of My Provenance",
         url="https://example.com",
         source="dcid:MySource",
+        source_data_url="https://example.com/data.csv",
         license="https://example.com/license",
         license_type="dcid:MyLicenseType",
+        license_attribution="Data provided by My Source",
         last_data_refresh_date="2026-01-01",
         next_data_refresh_date="2026-01-02",
         next_source_release_date="2026-01-03",
@@ -49,15 +58,26 @@ def test_provenance_to_mcf():
         'description: "Description of My Provenance"\n'
         'url: "https://example.com"\n'
         "source: dcid:MySource\n"
+        'sourceDataUrl: "https://example.com/data.csv"\n'
         'license: "https://example.com/license"\n'
-        'licenseType: "dcid:MyLicenseType"\n'
+        "licenseType: dcid:MyLicenseType\n"
+        'licenseAttribution: "Data provided by My Source"\n'
         'lastDataRefreshDate: "2026-01-01"\n'
         'nextDataRefreshDate: "2026-01-02"\n'
         'nextSourceReleaseDate: "2026-01-03"\n'
         'sourceReleaseFrequency: "P1Y"\n'
         'earliestObservationDate: "2026-01-04"\n'
         'latestObservationDate: "2026-01-05"\n'
-        'curator: "dcid:MyOrganisation"\n'
+        "curator: dcid:MyOrganisation\n"
         "isPartOf: dcid:MyDataset\n"
         "\n"
     )
+
+
+def test_license_type_and_curator_reject_bare_tokens():
+    """Dcid-typed properties must carry the ``dcid:`` prefix."""
+    with pytest.raises(ValidationError):
+        SourceNode(dcid="dcid:MySource", license_type="CreativeCommonsAttribution4_0")
+
+    with pytest.raises(ValidationError):
+        ProvenanceNode(dcid="dcid:MyProvenance", curator="MyOrganisation")
