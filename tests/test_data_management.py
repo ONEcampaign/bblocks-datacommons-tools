@@ -406,6 +406,26 @@ def test_export_all_empties_the_directory_first(tmp_path):
     assert not (tmp_path / "sub").exists()
 
 
+def test_export_all_keeps_previous_bundle_when_config_is_invalid(tmp_path):
+    """An invalid config raises before the directory is cleared."""
+    manager = CustomDataManager()
+    manager.add_variable_to_mcf(dcid="MyVariable", name="My Variable")
+    manager.export_all(tmp_path)
+
+    manager._config.input_files.append(
+        InputFile(
+            filename="x.csv",
+            provenance="dcid:provenance/ghost",
+            column_mappings=ColumnMappings(),
+        )
+    )
+    with pytest.raises(ValueError, match="ghost"):
+        manager.export_all(tmp_path)
+
+    assert (tmp_path / "config.json").exists()
+    assert (tmp_path / "custom_nodes.mcf").exists()
+
+
 def test_add_variable_group_to_mcf_and_override():
     """
     Checks StatVarGroup node addition and override behavior.

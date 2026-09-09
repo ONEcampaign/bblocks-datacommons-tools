@@ -1556,11 +1556,16 @@ class CustomDataManager:
                 Defaults to False.
 
         Raises:
-            ValueError: If an input file has no data entry.
+            ValueError: If an input file has no data entry, or if the config is
+                invalid.
         """
 
         if validate_data:
             self.validate_all_input_files_have_data()
+
+        # Validate before clearing the directory, so an invalid config leaves the
+        # previous export in place to fix and retry against.
+        self.validate_config()
 
         dir_path = Path(dir_path)
         if dir_path.exists():
