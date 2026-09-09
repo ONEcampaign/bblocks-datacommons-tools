@@ -470,13 +470,13 @@ def test_gcs_input_folder_path_strips_slashes(monkeypatch):
     env_vals = {
         "LOCAL_PATH": "/tmp/data",
         "GCP_PROJECT_ID": "proj",
+        "GCP_REGION": "us-central1",
         "GCS_BUCKET_NAME": "bucket",
         "GCS_INPUT_FOLDER_PATH": "ingestion/input/",
         "GCS_OUTPUT_FOLDER_PATH": "/output/path/",
-        "LOAD_JOB_NAME": "job",
+        "INGESTION_PREP_JOB_NAME": "prep-job",
         "INGESTION_WORKFLOW_NAME": "workflow",
-        "LOAD_JOB_REGION": "us-central1",
-        "LOAD_JOB_SERVICE_ACCOUNT": "test@example.com",
+        "INGESTION_SERVICE_ACCOUNT": "test@example.com",
     }
     for k, v in env_vals.items():
         monkeypatch.setenv(k, v)

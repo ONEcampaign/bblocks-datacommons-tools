@@ -1,7 +1,5 @@
-from dcp_tools.gcp_utilities.pipeline import (
-    run_data_load,
-    upload_to_cloud_storage,
-)
+from dcp_tools.gcp_utilities.ingestion import run_ingestion_workflow
+from dcp_tools.gcp_utilities.pipeline import upload_to_cloud_storage
 from dcp_tools.gcp_utilities.settings import KGSettings, get_kg_settings
 from dcp_tools.gcp_utilities.storage import (
     delete_bucket_files,
@@ -19,6 +17,6 @@ __all__ = [
     "get_missing_csv_files",
     "get_unregistered_csv_files",
     "list_bucket_files",
-    "run_data_load",
+    "run_ingestion_workflow",
     "upload_to_cloud_storage",
 ]

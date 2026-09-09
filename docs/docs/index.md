@@ -23,7 +23,7 @@ the platform itself works. This site covers the tooling that prepares and loads 
 - Build and edit `config.json` files programmatically
 - Register single- and multi-entity observations from CSV data
 - Declare custom schema nodes (entity types, event types, properties, units, measurement methods, StatVars, and StatVar groups) with typed builders
-- Upload prepared files to Google Cloud Storage and trigger the DCP (Data Commons Platform) ingestion job
+- Upload prepared files to Google Cloud Storage and trigger the DCP (Data Commons Platform) ingestion workflow
 - Usable as a Python API or through the `dcp-tools` CLI
 
 ## Where to go next

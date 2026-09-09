@@ -12,7 +12,7 @@ your data as CSVs in a fixed variable-per-row shape, plus a `config.json` that m
 columns onto the Data Commons schema. If you're defining your own statistical variables,
 entities, or properties rather than reusing existing ones, you also need MCF (Meta Content
 Framework) files describing them. `dcp-tools` builds and validates that bundle in Python (or from
-the CLI) and uploads it to Cloud Storage to trigger the platform's ingestion job.
+the CLI) and uploads it to Cloud Storage to trigger the platform's ingestion workflow.
 
 This package was published as `bblocks-datacommons-tools` until version 0.1.1, and imported as
 `bblocks.datacommons_tools`. Installing the old distribution now pulls in `dcp-tools` and
@@ -116,20 +116,24 @@ name, and column mappings and the provenance name are resolved to full dcids:
 
 ## Loading it
 
-Once you have a bundle on disk, `dcp_tools.gcp_utilities` uploads it and triggers the load:
+Once you have a bundle on disk, `dcp_tools.gcp_utilities` uploads it and triggers ingestion:
 
 ```python
-from dcp_tools.gcp_utilities import get_kg_settings, upload_to_cloud_storage, run_data_load
+from dcp_tools.gcp_utilities import (
+    get_kg_settings,
+    run_ingestion_workflow,
+    upload_to_cloud_storage,
+)
 
 settings = get_kg_settings(source="env", env_file="customDC.env")
 upload_to_cloud_storage(settings=settings, directory="export/climate_finance")
-run_data_load(settings=settings)
+run_ingestion_workflow(settings=settings)
 ```
 
-`run_data_load` triggers the DCP (Data Commons Platform) ingestion job, which ingests the new
-data and serves it. There's no separate redeploy step to run. See the
+`run_ingestion_workflow` triggers the DCP (Data Commons Platform) ingestion workflow, which
+ingests the new data and serves it. There's no separate redeploy step to run. See the
 [loading-data docs](https://docs.one.org/tools/dcp-tools/loading-data/) for the
-full settings reference, and the `dcp-tools` CLI (`upload`, `dataload`, `pipeline`), which wraps
+full settings reference, and the `dcp-tools` CLI (`upload`, `ingest`, `pipeline`), which wraps
 this same flow.
 
 ## Contributing

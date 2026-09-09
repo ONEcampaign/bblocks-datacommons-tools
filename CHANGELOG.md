@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `license_type` and `curator` are now DCID references, written as
   `licenseType: dcid:<token>` instead of a quoted string. Bare tokens passed to `add_source` /
   `add_provenance` are minted; `SourceNode` / `ProvenanceNode` still require the `dcid:` prefix.
+- **Breaking:** renamed the ingestion settings to match the DCP Terraform outputs:
+  `LOAD_JOB_NAME` -> `INGESTION_PREP_JOB_NAME`, `LOAD_JOB_REGION` -> `GCP_REGION`, and
+  `LOAD_JOB_SERVICE_ACCOUNT` -> `INGESTION_SERVICE_ACCOUNT`. The old names are no longer accepted.
+- **Breaking:** `run_data_load` is renamed `run_ingestion_workflow` and the `dataload` CLI command
+  is renamed `ingest`.
+
+**Migration:**
+
+- Rename the ingestion settings in your `.env`/JSON settings file. `KGSettings` no longer accepts
+  the `LOAD_JOB_*` names.
+- Replace `run_data_load(...)` with `run_ingestion_workflow(...)`, and `dcp-tools dataload` with
+  `dcp-tools ingest`.
 
 ## [1.0.0a4] - 2026-09-07
 

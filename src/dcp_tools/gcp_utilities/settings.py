@@ -17,19 +17,22 @@ class KGSettings(BaseSettings):
     Attributes:
         local_path: Path to the local directory that will be exported.
         gcp_project_id: GCP project ID.
+        gcp_region: GCP region the ingestion resources live in.
         gcp_credentials: GCP credentials in JSON format. Optional; if not provided,
             Application Default Credentials (ADC) will be used.
         gcs_bucket_name: Google Cloud Storage bucket name.
         gcs_input_folder_path: Google Cloud Storage input folder path. Defaults to
             "ingestion/input", the DCP Terraform default.
         gcs_output_folder_path: Google Cloud Storage output folder path.
-        load_job_region: Cloud Run load job region.
-        load_job_name: Cloud Run load job name.
-        load_job_service_account: Cloud Run service account email to impersonate, optional.
+        ingestion_prep_job_name: Name of the Cloud Run ingestion preprocessing job.
+        ingestion_workflow_name: Name of the Cloud Workflow that runs ingestion.
+        ingestion_service_account: Service account email to impersonate when triggering
+            ingestion, optional.
     """
 
     local_path: Path = Field(validation_alias="LOCAL_PATH")
     gcp_project_id: str = Field(validation_alias="GCP_PROJECT_ID")
+    gcp_region: str = Field(validation_alias="GCP_REGION")
     gcp_credentials: Json[dict] | None = Field(
         default=None, validation_alias="GCP_CREDENTIALS"
     )
@@ -41,12 +44,11 @@ class KGSettings(BaseSettings):
     )
     gcs_output_folder_path: str = Field(validation_alias="GCS_OUTPUT_FOLDER_PATH")
 
-    # Cloud run
-    load_job_region: str = Field(validation_alias="LOAD_JOB_REGION")
-    load_job_name: str = Field(validation_alias="LOAD_JOB_NAME")
+    # Ingestion
+    ingestion_prep_job_name: str = Field(validation_alias="INGESTION_PREP_JOB_NAME")
     ingestion_workflow_name: str = Field(validation_alias="INGESTION_WORKFLOW_NAME")
-    load_job_service_account: str | None = Field(
-        validation_alias="LOAD_JOB_SERVICE_ACCOUNT", default=None
+    ingestion_service_account: str | None = Field(
+        validation_alias="INGESTION_SERVICE_ACCOUNT", default=None
     )
 
     @field_validator("gcs_input_folder_path", "gcs_output_folder_path")
@@ -81,7 +83,7 @@ def get_kg_settings(
     """Return an instance of KGSettings.
 
     Settings are the key configuration values needed to run the pipeline. They include
-    information about the GCP project, the GCS bucket, and the Cloud Run job.
+    information about the GCP project, the GCS bucket, and the ingestion resources.
 
     Args:
         source (str): Source of the settings. Can be "env" or "json".

@@ -9,25 +9,25 @@ from dcp_tools.gcp_utilities.settings import KGSettings, get_kg_settings
 RAW_SCREAMING = {
     "LOCAL_PATH": "/tmp/data",
     "GCP_PROJECT_ID": "proj",
+    "GCP_REGION": "us-central1",
     "GCS_BUCKET_NAME": "bucket",
     "GCS_INPUT_FOLDER_PATH": "ingestion/input/",
     "GCS_OUTPUT_FOLDER_PATH": "/output/path/",
-    "LOAD_JOB_NAME": "job",
+    "INGESTION_PREP_JOB_NAME": "prep-job",
     "INGESTION_WORKFLOW_NAME": "workflow",
-    "LOAD_JOB_REGION": "us-central1",
-    "LOAD_JOB_SERVICE_ACCOUNT": "test@example.com",
+    "INGESTION_SERVICE_ACCOUNT": "test@example.com",
 }
 
 RAW_SNAKE = {
     "local_path": "/tmp/data",
     "gcp_project_id": "proj",
+    "gcp_region": "us-central1",
     "gcs_bucket_name": "bucket",
     "gcs_input_folder_path": "ingestion/input/",
     "gcs_output_folder_path": "/output/path/",
-    "load_job_name": "job",
+    "ingestion_prep_job_name": "prep-job",
     "ingestion_workflow_name": "workflow",
-    "load_job_region": "us-central1",
-    "load_job_service_account": "test@example.com",
+    "ingestion_service_account": "test@example.com",
 }
 
 
@@ -62,7 +62,7 @@ def test_constructor_still_accepts_screaming_snake_aliases() -> None:
     settings = KGSettings(**RAW_SCREAMING)
 
     assert settings.local_path == Path("/tmp/data")
-    assert settings.load_job_service_account == "test@example.com"
+    assert settings.ingestion_service_account == "test@example.com"
 
 
 def test_json_source_loads_screaming_snake_config(tmp_path: Path) -> None:

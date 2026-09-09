@@ -24,10 +24,10 @@ relationship.
 
 A Data Commons Platform instance serves an organization's own data next to the base Data Commons
 knowledge graph. Getting data in isn't a matter of writing rows into a database table. The
-platform's ingestion job reads a declarative bundle (config, CSVs, MCF) and turns it into graph
-nodes and observations. `dcp-tools` builds that bundle. It doesn't talk to a database and it
-doesn't run the ingestion job itself. `CustomDataManager` assembles the files, and
-[`run_data_load`](loading-data.md) hands them to the platform's prep job.
+platform's ingestion workflow reads a declarative bundle (config, CSVs, MCF) and turns it into
+graph nodes and observations. `dcp-tools` builds that bundle. It doesn't talk to a database and it
+doesn't run the ingestion workflow itself. `CustomDataManager` assembles the files, and
+[`run_ingestion_workflow`](loading-data.md) hands them to the platform.
 
 The full shape of the bundle format, including fields not covered here, is documented at
 [docs.datacommons.org/custom_dc/custom_data.html](https://docs.datacommons.org/custom_dc/custom_data.html).

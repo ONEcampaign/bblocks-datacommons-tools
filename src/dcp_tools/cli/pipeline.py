@@ -6,10 +6,8 @@ import argparse
 from pathlib import Path
 
 from dcp_tools.cli.common import load_settings_from_args
-from dcp_tools.gcp_utilities.pipeline import (
-    run_data_load,
-    upload_to_cloud_storage,
-)
+from dcp_tools.gcp_utilities.ingestion import run_ingestion_workflow
+from dcp_tools.gcp_utilities.pipeline import upload_to_cloud_storage
 
 __all__ = ["add_parser", "run"]
 
@@ -43,5 +41,5 @@ def run(args: argparse.Namespace) -> int:
     """Execute the ``pipeline`` command."""
     settings = load_settings_from_args(args)
     upload_to_cloud_storage(settings=settings, directory=args.directory, sync=args.sync)
-    run_data_load(settings=settings)
+    run_ingestion_workflow(settings=settings)
     return 0
