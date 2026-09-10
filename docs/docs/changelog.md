@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.0.0a5 (2026-09-10)
 
 - **Breaking:** `license_type` and `curator` are now DCID references, written as
   `licenseType: dcid:<token>` instead of a quoted string. Bare tokens passed to `add_source` /

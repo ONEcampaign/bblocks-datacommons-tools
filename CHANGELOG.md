@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0a5] - 2026-09-10
+
 ### Added
 - `license_type` and `license_attribution` on `add_source`, and `source_data_url` and
   `license_attribution` on `add_provenance`.
@@ -315,4 +317,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.0a2]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a1...v1.0.0a2
 [1.0.0a3]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a2...v1.0.0a3
 [1.0.0a4]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a3...v1.0.0a4
-[unreleased]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a4...HEAD
+[1.0.0a5]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a4...v1.0.0a5
+[unreleased]: https://github.com/ONEcampaign/dcp-tools/compare/v1.0.0a5...HEAD
