@@ -11,6 +11,7 @@
 - **Breaking:** renamed `run_data_load` to `run_ingestion_workflow`, and the `dataload` CLI
   command to `ingest`. `imports` is now keyword-only, so `run_data_load(settings, "climateFinance")`
   becomes `run_ingestion_workflow(settings, imports="climateFinance")`.
+- **Breaking:** `export_all` now empties the target directory before writing.
 - Added `license_type` and `license_attribution` to `add_source`, and `source_data_url` and
   `license_attribution` to `add_provenance`.
 

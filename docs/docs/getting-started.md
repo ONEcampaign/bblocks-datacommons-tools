@@ -193,7 +193,8 @@ manager.add_mcf_file("*.mcf", provenance="ONEClimateFinance")
 
 ## Step 6: Export the bundle and verify it
 
-`export_all` writes the config, the data, and any MCF files you've registered.
+`export_all` empties the target directory, then writes the config, the data, and any MCF files
+you've registered.
 
 ```python
 manager.export_all("one_climate_finance")
